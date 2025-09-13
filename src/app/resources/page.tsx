@@ -147,7 +147,7 @@ export default function ResourcesPage() {
         <Card className="mb-6">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-4">
-              <div className="flex-1 min-w-64">
+              <div className="flex-1 min-w-64 relative">
                 <Input
                   placeholder="Search resources..."
                   value={searchTerm}
