@@ -1,0 +1,67 @@
+import NextAuth from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+import type { NextAuthOptions } from "next-auth"
+
+const authOptions: NextAuthOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      // Check if user's email domain matches the allowed domain
+      const allowedDomain = process.env.ALLOWED_DOMAIN
+      
+      if (!allowedDomain) {
+        console.error("ALLOWED_DOMAIN environment variable not set")
+        return false
+      }
+
+      if (user.email) {
+        const emailDomain = user.email.split("@")[1]
+        
+        // Allow sign in only if the email domain matches the allowed domain
+        if (emailDomain === allowedDomain) {
+          return true
+        } else {
+          console.log(`Sign-in rejected: ${user.email} domain ${emailDomain} not allowed`)
+          return false
+        }
+      }
+      
+      return false
+    },
+    async jwt({ token, user }) {
+      // Pass user information to the token
+      if (user) {
+        token.email = user.email
+        token.name = user.name
+        token.picture = user.image
+      }
+      return token
+    },
+    async session({ session, token }) {
+      // Pass token information to the session
+      if (session.user) {
+        session.user.email = token.email as string
+        session.user.name = token.name as string
+        session.user.image = token.picture as string
+      }
+      return session
+    },
+  },
+  pages: {
+    signIn: '/login',
+    error: '/login', // Redirect to login page on error
+  },
+  session: {
+    strategy: "jwt",
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+}
+
+const handler = NextAuth(authOptions)
+
+export { handler as GET, handler as POST }
