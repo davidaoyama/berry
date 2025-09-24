@@ -11,26 +11,31 @@ const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Check if user's email domain matches the allowed domain
-      const allowedDomain = process.env.ALLOWED_DOMAIN
+      // Check if user's email domain matches any of the allowed domains
+      const allowedDomainsEnv = process.env.ALLOWED_DOMAINS || process.env.ALLOWED_DOMAIN
       
-      if (!allowedDomain) {
-        console.error("ALLOWED_DOMAIN environment variable not set")
+      if (!allowedDomainsEnv) {
+        console.error("ALLOWED_DOMAINS or ALLOWED_DOMAIN environment variable not set")
         return false
       }
 
       if (user.email) {
         const emailDomain = user.email.split("@")[1]
         
-        // Allow sign in only if the email domain matches the allowed domain
-        if (emailDomain === allowedDomain) {
+        // Split the allowed domains by comma and trim whitespace
+        const allowedDomains = allowedDomainsEnv.split(",").map(domain => domain.trim())
+        
+        // Allow sign in if the email domain matches any of the allowed domains
+        if (allowedDomains.includes(emailDomain)) {
+          console.log(`Sign-in allowed: ${user.email} domain ${emailDomain} is authorized`)
           return true
         } else {
-          console.log(`Sign-in rejected: ${user.email} domain ${emailDomain} not allowed`)
+          console.log(`Sign-in rejected: ${user.email} domain ${emailDomain} not in allowed domains: [${allowedDomains.join(", ")}]`)
           return false
         }
       }
       
+      console.log("Sign-in rejected: No email provided")
       return false
     },
     async jwt({ token, user }) {

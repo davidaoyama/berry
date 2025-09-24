@@ -3,6 +3,7 @@
 import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import Link from "next/link"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -31,7 +32,7 @@ export default function LoginPage() {
       })
       
       if (result?.error) {
-        setError("Authentication failed. Please make sure you're using an email from the allowed domain.")
+        setError("Authentication failed. Please make sure you're using an authorized email address (@usc.edu or @lausd.net).")
       } else if (result?.url) {
         router.push(result.url)
       }
@@ -87,6 +88,15 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+          </div>
+
+          <div className="text-center">
+            <span className="text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Sign up
+              </Link>
+            </span>
           </div>
         </div>
       </div>
