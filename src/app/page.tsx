@@ -12,7 +12,7 @@ export default function Home() {
             A secure platform for students and organizations. Sign in with your authorized email to get started.
           </p>
           
-          <div className="flex gap-6 justify-center items-center flex-col sm:flex-row">
+          <div className="flex gap-4 justify-center items-center flex-col sm:flex-row">
             <Link
               href="/signup"
               className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-indigo-600 text-white gap-2 hover:bg-indigo-700 font-medium text-sm sm:text-base h-12 px-8 sm:w-auto"
@@ -24,6 +24,12 @@ export default function Home() {
               className="rounded-full border border-solid border-gray-300 transition-colors flex items-center justify-center bg-white text-gray-900 gap-2 hover:bg-gray-50 font-medium text-sm sm:text-base h-12 px-8 sm:w-auto"
             >
               Sign In
+            </Link>
+            <Link
+              href="/org"
+              className="rounded-full border border-solid border-green-600 transition-colors flex items-center justify-center bg-green-600 text-white gap-2 hover:bg-green-700 font-medium text-sm sm:text-base h-12 px-8 sm:w-auto"
+            >
+              Organization Registration
             </Link>
           </div>
 
@@ -45,7 +51,16 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">For Organizations</h3>
-              <p className="text-gray-600 text-sm">Manage your organization, track members, and coordinate activities.</p>
+              <p className="text-gray-600 text-sm mb-4">Manage your organization, track members, and coordinate activities.</p>
+              <Link
+                href="/org"
+                className="inline-flex items-center text-sm font-medium text-green-600 hover:text-green-500"
+              >
+                Register Your Organization
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
           </div>
 
