@@ -8,19 +8,14 @@ export default function OrganizationRegistration() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
   const [formData, setFormData] = useState({
     organizationName: "",
     organizationType: "",
-    contactPersonName: "",
-    contactEmail: "",
-    contactPhone: "",
-    city: "",
-    state: "",
-    website: "",
-    description: "",
-    servicesOffered: "",
     businessId: "",
-    gradesServed: [] as string[]
+    description: "",
+    email: "",
+    phoneNumber: ""
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -31,26 +26,11 @@ export default function OrganizationRegistration() {
     }))
   }
 
-  const handleGradeChange = (grade: string) => {
-    setFormData(prev => ({
-      ...prev,
-      gradesServed: prev.gradesServed.includes(grade)
-        ? prev.gradesServed.filter(g => g !== grade)
-        : [...prev.gradesServed, grade]
-    }))
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError("")
-
-    // Client-side validation for grades served
-    if (formData.gradesServed.length === 0) {
-      setError("Please select at least one grade level served")
-      setIsSubmitting(false)
-      return
-    }
+    setSuccess(false)
 
     try {
       const response = await fetch("/api/org-registration", {
@@ -62,7 +42,16 @@ export default function OrganizationRegistration() {
       })
 
       if (response.ok) {
-        router.push("/org/success")
+        setSuccess(true)
+        // Reset form
+        setFormData({
+          organizationName: "",
+          organizationType: "",
+          businessId: "",
+          description: "",
+          email: "",
+          phoneNumber: ""
+        })
       } else {
         const errorData = await response.json()
         setError(errorData.message || "Failed to submit registration")
@@ -72,6 +61,42 @@ export default function OrganizationRegistration() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white shadow-lg rounded-lg p-8 text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Registration Submitted!</h2>
+            <p className="text-gray-600 mb-6">
+              Thank you for registering your organization. Your application has been submitted and is pending approval. 
+              You will receive an email notification once your organization has been reviewed and approved.
+            </p>
+            <div className="space-y-3">
+              <Link
+                href="/"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Return to Home
+              </Link>
+              <br />
+              <button
+                onClick={() => setSuccess(false)}
+                className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Register Another Organization
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -97,10 +122,10 @@ export default function OrganizationRegistration() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Basic Organization Information */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Organization Information */}
             <div className="bg-gray-50 p-6 rounded-lg">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Organization Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -114,6 +139,7 @@ export default function OrganizationRegistration() {
                     value={formData.organizationName}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Enter your organization name"
                   />
                 </div>
 
@@ -140,21 +166,6 @@ export default function OrganizationRegistration() {
                 </div>
 
                 <div>
-                  <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
-                    Website
-                  </label>
-                  <input
-                    type="url"
-                    id="website"
-                    name="website"
-                    value={formData.website}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="https://www.example.com"
-                  />
-                </div>
-
-                <div>
                   <label htmlFor="businessId" className="block text-sm font-medium text-gray-700 mb-2">
                     Business ID *
                   </label>
@@ -167,6 +178,38 @@ export default function OrganizationRegistration() {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter your business registration ID"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Login Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Email address for organization login"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    required
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Organization contact phone number"
                   />
                 </div>
               </div>
@@ -183,141 +226,33 @@ export default function OrganizationRegistration() {
                   value={formData.description}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Describe your organization's mission, goals, and activities..."
+                  placeholder="Describe your organization's mission, goals, and the opportunities you plan to offer to students..."
                 />
               </div>
             </div>
 
-            {/* Contact Information */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="contactPersonName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Primary Contact Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="contactPersonName"
-                    name="contactPersonName"
-                    required
-                    value={formData.contactPersonName}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
+            {/* Information Notice */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
                 </div>
-
-                <div>
-                  <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-2">
-                    Contact Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="contactEmail"
-                    name="contactEmail"
-                    required
-                    value={formData.contactEmail}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-700 mb-2">
-                    Contact Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    id="contactPhone"
-                    name="contactPhone"
-                    required
-                    value={formData.contactPhone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Location Information */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Location Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    required
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-                    State *
-                  </label>
-                  <input
-                    type="text"
-                    id="state"
-                    name="state"
-                    required
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Services and Grade Levels */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Services Information</h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <label htmlFor="servicesOffered" className="block text-sm font-medium text-gray-700 mb-2">
-                    Services Offered to Students *
-                  </label>
-                  <textarea
-                    id="servicesOffered"
-                    name="servicesOffered"
-                    required
-                    rows={4}
-                    value={formData.servicesOffered}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Describe the services your organization provides to students..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Grade Levels Served * (Select all that apply)
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map((grade) => (
-                      <label key={grade} className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.gradesServed.includes(grade)}
-                          onChange={() => handleGradeChange(grade)}
-                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="text-sm text-gray-700">
-                          {grade === 'K' ? 'Kindergarten' : `Grade ${grade}`}
-                        </span>
-                      </label>
-                    ))}
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-blue-800">
+                    Application Review Process
+                  </h3>
+                  <div className="mt-2 text-sm text-blue-700">
+                    <p>
+                      Your organization registration will be reviewed by our team. Once approved, you'll be able to:
+                    </p>
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      <li>Sign in to your organization dashboard</li>
+                      <li>Create and manage student opportunities</li>
+                      <li>Connect with students in your area</li>
+                    </ul>
                   </div>
-                  {formData.gradesServed.length === 0 && (
-                    <p className="text-sm text-red-600 mt-1">Please select at least one grade level.</p>
-                  )}
                 </div>
               </div>
             </div>
