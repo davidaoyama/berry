@@ -1,21 +1,24 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/app/components/Providers"
+import { supabase } from "@/app/lib/supabaseClient"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function Navbar() {
-  const { data: session, status } = useSession()
+  const { user, loading } = useAuth()
   const pathname = usePathname()
+  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" })
+    await supabase.auth.signOut()
+    router.push("/")
   }
 
-  // Don't show navbar on login/signup pages
-  if (pathname === "/login" || pathname === "/signup" || pathname === "/org" || pathname === "/org/login") {
+  // Don't show navbar on login/signup/auth pages
+  if (pathname === "/login" || pathname === "/signup" || pathname === "/auth" || pathname === "/org" || pathname === "/org/login") {
     return null
   }
 
@@ -28,6 +31,13 @@ export default function Navbar() {
       ? "bg-indigo-700 text-white"
       : "text-indigo-100 hover:bg-indigo-600 hover:text-white"
   }
+
+  // Extract user information from Supabase user object
+  const name = user ? (
+    user.user_metadata?.full_name ||
+    [user.user_metadata?.first_name, user.user_metadata?.last_name].filter(Boolean).join(" ") ||
+    user.email?.split("@")[0]
+  ) : null
 
   return (
     <nav className="bg-indigo-600 shadow-lg">
@@ -42,8 +52,8 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Public Navigation */}
-            {!session && (
+            {/* Public Navigation - When Not Logged In */}
+            {!loading && !user && (
               <>
                 <Link
                   href="/"
@@ -52,13 +62,13 @@ export default function Navbar() {
                   Home
                 </Link>
                 <Link
-                  href="/login"
+                  href="/auth"
                   className="bg-white text-indigo-600 hover:bg-gray-100 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/auth"
                   className="bg-indigo-700 text-white hover:bg-indigo-800 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Sign Up
@@ -78,8 +88,8 @@ export default function Navbar() {
               </>
             )}
 
-            {/* Authenticated Navigation */}
-            {session && (
+            {/* Authenticated Navigation - When Logged In */}
+            {!loading && user && (
               <>
                 <Link
                   href="/"
@@ -129,7 +139,7 @@ export default function Navbar() {
                 {/* User Menu */}
                 <div className="flex items-center space-x-3">
                   <span className="text-indigo-100 text-sm">
-                    Welcome, {session.user?.name}
+                    Welcome, {name || 'User'}
                   </span>
                   <button
                     onClick={handleSignOut}
@@ -139,6 +149,13 @@ export default function Navbar() {
                   </button>
                 </div>
               </>
+            )}
+
+            {/* Loading state */}
+            {loading && (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              </div>
             )}
           </div>
 
@@ -163,7 +180,7 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-indigo-700">
-              {!session && (
+              {!loading && !user && (
                 <>
                   <Link
                     href="/"
@@ -173,14 +190,14 @@ export default function Navbar() {
                     Home
                   </Link>
                   <Link
-                    href="/login"
+                    href="/auth"
                     className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign In
                   </Link>
                   <Link
-                    href="/signup"
+                    href="/auth"
                     className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -203,7 +220,7 @@ export default function Navbar() {
                 </>
               )}
 
-              {session && (
+              {!loading && user && (
                 <>
                   <Link
                     href="/"
@@ -242,7 +259,7 @@ export default function Navbar() {
                   </Link>
                   <div className="border-t border-indigo-500 pt-3 mt-3">
                     <div className="px-3 py-2 text-indigo-100 text-sm">
-                      Welcome, {session.user?.name}
+                      Welcome, {name || 'User'}
                     </div>
                     <button
                       onClick={() => {
@@ -255,6 +272,13 @@ export default function Navbar() {
                     </button>
                   </div>
                 </>
+              )}
+
+              {/* Loading state for mobile */}
+              {loading && (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                </div>
               )}
             </div>
           </div>
