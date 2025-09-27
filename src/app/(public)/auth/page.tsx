@@ -20,7 +20,7 @@ export default function AuthPage() {
   const searchParams = useSearchParams()
   const mode = searchParams.get("mode") === "signup" ? "signup" : "signin"
 
-  // Validate if email domain is allowed
+  // Validate if email domain is allowed for students
   const isAllowedDomain = (email: string): boolean => {
     if (!email || !email.includes('@')) return false
     
@@ -41,6 +41,8 @@ export default function AuthPage() {
     if (errorParam) {
       if (errorParam === 'access_denied' && searchParams.get('error_code') === 'otp_expired') {
         setError("This magic link has expired or is invalid. Please request a new one.")
+      } else if (errorParam === 'domain_not_allowed') {
+        setError(`Student accounts require an email address from ${ALLOWED_DOMAINS.join(" or ")}.`)
       } else if (errorMessage) {
         setError(decodeURIComponent(errorMessage))
       } else {
@@ -52,16 +54,28 @@ export default function AuthPage() {
   // Handle sign-in form submission
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate email format
+    if (!email || !email.includes('@')) {
+      setError("Please enter a valid email address")
+      return
+    }
+    
+    // Domain validation for students - only if role is explicitly selected as student
+    if (role === "student" && !isAllowedDomain(email)) {
+      setError(`Student accounts require an email address from ${ALLOWED_DOMAINS.join(" or ")}.`)
+      return
+    }
+    
     setIsLoading(true)
     setError(null)
     
     try {
-      // For sign-in, use shouldCreateUser: false
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/verify`,
-          shouldCreateUser: false // Only for sign-in
+          // Don't specify shouldCreateUser to use default Supabase behavior
         }
       })
       
@@ -80,8 +94,14 @@ export default function AuthPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!email || !firstName || !lastName || !role) {
+    if (!email || !firstName || !lastName) {
       setError("Please fill in all required fields")
+      return
+    }
+    
+    // Validate email format
+    if (!email.includes('@')) {
+      setError("Please enter a valid email address")
       return
     }
     
@@ -127,6 +147,12 @@ export default function AuthPage() {
     e.preventDefault()
     if (!email) {
       setError("Please enter your email address")
+      return
+    }
+    
+    // Domain validation for students when resending verification
+    if (role === "student" && !isAllowedDomain(email)) {
+      setError(`Student accounts require an email address from ${ALLOWED_DOMAINS.join(" or ")}.`)
       return
     }
     
@@ -246,10 +272,32 @@ export default function AuthPage() {
               </div>
             )}
             
+            {/* Sign-in mode also needs a role selector, but more subtle */}
+            {mode === "signin" && (
+              <div>
+                <label htmlFor="signin-role" className="block text-sm font-medium text-gray-700">
+                  I am signing in as a
+                </label>
+                <select
+                  id="signin-role"
+                  value={role}
+                  onChange={(e) => {
+                    setRole(e.target.value as "student" | "org")
+                    setError(null)
+                  }}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  disabled={isLoading}
+                >
+                  <option value="student">Student</option>
+                  <option value="org">Organization</option>
+                </select>
+              </div>
+            )}
+            
             {/* Email field */}
             <div>
               <label htmlFor="email" className="flex justify-between items-center text-sm font-medium text-gray-700">
-                <span>Email {mode === "signup" && role === "student" && (
+                <span>Email {role === "student" && (
                   <span className="text-xs text-gray-500">
                     (Must be {ALLOWED_DOMAINS.join(" or ")})
                   </span>
@@ -265,14 +313,14 @@ export default function AuthPage() {
                 }}
                 required
                 className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 ${
-                  mode === "signup" && emailValidation && !emailValidation.valid 
+                  emailValidation && !emailValidation.valid 
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500" 
                     : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                 }`}
                 disabled={isLoading}
                 placeholder={role === "student" ? `your@${ALLOWED_DOMAINS[0]}` : "your@email.com"}
               />
-              {mode === "signup" && emailValidation && !emailValidation.valid && (
+              {emailValidation && !emailValidation.valid && (
                 <p className="mt-1 text-sm text-red-600">{emailValidation.message}</p>
               )}
             </div>
@@ -316,7 +364,7 @@ export default function AuthPage() {
             
             <button
               type="submit"
-              disabled={isLoading || (mode === "signup" && role === "student" && !isAllowedDomain(email))}
+              disabled={isLoading || (role === "student" && !isAllowedDomain(email))}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
@@ -384,6 +432,12 @@ export default function AuthPage() {
                       We'll email you a magic link that will sign you in instantly.
                       No password needed!
                     </p>
+                    
+                    {role === "student" && (
+                      <p className="mt-2">
+                        <strong>Note:</strong> Student accounts require an email address from {ALLOWED_DOMAINS.join(" or ")}.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

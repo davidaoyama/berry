@@ -4,11 +4,21 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabaseClient'
 
+// Allowed email domains - get from environment if available
+const ALLOWED_DOMAINS = (process.env.NEXT_PUBLIC_ALLOWED_DOMAINS || "usc.edu,lausd.net").split(",")
+
 export default function VerifyPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState('Verifying your authentication...')
   const [error, setError] = useState<string | null>(null)
+  
+  // Validate if email domain is allowed for students
+  const isAllowedStudentDomain = (email: string): boolean => {
+    if (!email || !email.includes('@')) return false
+    const domain = email.split('@')[1].toLowerCase()
+    return ALLOWED_DOMAINS.includes(domain)
+  }
   
   useEffect(() => {
     const handleAuth = async () => {
@@ -19,11 +29,21 @@ export default function VerifyPage() {
         const errorDesc = searchParams.get('error_description')
         
         if (errorParam) {
-          const errorMessage = errorDesc || `Authentication error: ${errorParam}`
+          let errorMessage = errorDesc || `Authentication error: ${errorParam}`
+          let redirectMode = "signin"
+          
+          // Customize error message and redirect based on error type
+          if (errorParam === 'access_denied' && errorCode === 'otp_expired') {
+            errorMessage = "This magic link has expired. Please request a new one."
+          } else if (errorParam === 'unauthorized' || errorCode === 'unauthorized') {
+            errorMessage = "We couldn't find an account with this email. Please sign up first."
+            redirectMode = "signup"
+          }
+          
           console.error('Auth error from params:', errorMessage)
           setError(errorMessage)
           setTimeout(() => {
-            router.push(`/auth?error=${errorParam}&message=${encodeURIComponent(errorMessage)}`)
+            router.push(`/auth?mode=${redirectMode}&error=${errorParam}&message=${encodeURIComponent(errorMessage)}`)
           }, 2000)
           return
         }
@@ -37,6 +57,7 @@ export default function VerifyPage() {
         
         if (tokenHash && type === 'email') {
           console.log('Found token_hash and type, using verifyOtp')
+          
           // Use verifyOtp as documented for PKCE flow with token_hash
           const { data, error } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
@@ -46,6 +67,29 @@ export default function VerifyPage() {
           if (error) {
             console.error('OTP verification error:', error)
             throw error
+          }
+          
+          // Check if we have valid data
+          if (!data || !data.user) {
+            console.error('No user data returned from verifyOtp')
+            throw new Error('Authentication failed - no user data received')
+          }
+          
+          // Email domain validation for students
+          const email = data.user.email
+          const userRole = data.user.user_metadata?.role || 'student' // Default to student if no role
+          
+          // If user is a student, check if their domain is allowed
+          if (userRole === 'student' && email && !isAllowedStudentDomain(email)) {
+            console.error('Domain not allowed for student accounts:', email)
+            
+            // Sign out the user immediately
+            await supabase.auth.signOut()
+            
+            // Redirect to signup with an error message
+            const errorMessage = `Student accounts require an email address from ${ALLOWED_DOMAINS.join(" or ")}.`
+            router.push(`/auth?mode=signup&error=domain_not_allowed&message=${encodeURIComponent(errorMessage)}`)
+            return
           }
           
           // IMPORTANT: Make sure session is established before redirect
@@ -73,8 +117,16 @@ export default function VerifyPage() {
           console.log('Redirecting to:', redirectPath)
           setStatus(`Authentication successful! Redirecting to dashboard...`)
           
-          // Use replace instead of push
+          // Use replace instead of push for more reliable navigation
           router.replace(redirectPath)
+          
+          // Fallback navigation with timeout
+          setTimeout(() => {
+            if (!window.location.pathname.startsWith('/dashboard')) {
+              window.location.href = redirectPath;
+            }
+          }, 1500);
+          
           return
         }
         
@@ -87,9 +139,27 @@ export default function VerifyPage() {
           throw error
         }
         
-        if (!data.session) {
-          console.error('No session data found after code exchange')
-          throw new Error('Failed to authenticate - no session created')
+        // Check if we have valid data
+        if (!data || !data.user || !data.session) {
+          console.error('No user or session data found after code exchange')
+          throw new Error('Failed to authenticate - no user data received')
+        }
+        
+        // Email domain validation for students (code exchange flow)
+        const email = data.user.email
+        const userRole = data.user.user_metadata?.role || 'student' // Default to student if no role
+        
+        // If user is a student, check if their domain is allowed
+        if (userRole === 'student' && !isAllowedStudentDomain(email ?? '')) {
+          console.error('Domain not allowed for student accounts:', email)
+          
+          // Sign out the user immediately
+          await supabase.auth.signOut()
+          
+          // Redirect to signup with an error message
+          const errorMessage = `Student accounts require an email address from ${ALLOWED_DOMAINS.join(" or ")}.`
+          router.push(`/auth?mode=signup&error=domain_not_allowed&message=${encodeURIComponent(errorMessage)}`)
+          return
         }
         
         // Authentication successful
@@ -98,11 +168,20 @@ export default function VerifyPage() {
         // Get user role and redirect
         const role = data.user?.user_metadata?.role
         const redirectPath = role === 'student' ? '/dashboard/student' : 
-                            role === 'org' ? '/dashboard/org' : 
-                            '/dashboard'
+                           role === 'org' ? '/dashboard/org' : 
+                           '/dashboard'
         
         setStatus(`Authentication successful! Redirecting to dashboard...`)
-        router.push(redirectPath)
+        
+        // Use replace for more reliable navigation
+        router.replace(redirectPath)
+        
+        // Fallback navigation with timeout
+        setTimeout(() => {
+          if (!window.location.pathname.startsWith('/dashboard')) {
+            window.location.href = redirectPath;
+          }
+        }, 1500);
         
       } catch (err: any) {
         console.error('Auth verification error:', err)
@@ -111,18 +190,44 @@ export default function VerifyPage() {
         // Try to check if we have a session despite the error
         try {
           const { data } = await supabase.auth.getSession()
-          if (data.session) {
-            // We have a session, so redirect to dashboard
+          if (data?.session?.user) {
+            // We have a session, do additional domain validation
+            const email = data.session.user.email
+            const userRole = data.session.user.user_metadata?.role || 'student'
+            
+            // If user is a student, check if their domain is allowed
+            if (userRole === 'student' && !isAllowedStudentDomain(email ?? '')) {
+              console.error('Domain not allowed for student accounts:', email)
+              
+              // Sign out the user immediately
+              await supabase.auth.signOut()
+              
+              // Redirect to signup with an error message
+              const errorMessage = `Student accounts require an email address from ${ALLOWED_DOMAINS.join(" or ")}.`
+              router.push(`/auth?mode=signup&error=domain_not_allowed&message=${encodeURIComponent(errorMessage)}`)
+              return
+            }
+            
+            // Domain is valid, redirect to dashboard
             const role = data.session.user.user_metadata?.role
             const redirectPath = role === 'student' ? '/dashboard/student' : 
-                              role === 'org' ? '/dashboard/org' : 
-                              '/dashboard'
+                               role === 'org' ? '/dashboard/org' : 
+                               '/dashboard'
             
             setStatus(`Already authenticated! Redirecting...`)
-            router.push(redirectPath)
+            router.replace(redirectPath)
+            
+            // Fallback navigation
+            setTimeout(() => {
+              if (!window.location.pathname.startsWith('/dashboard')) {
+                window.location.href = redirectPath;
+              }
+            }, 1500);
+            
             return
           }
-        } catch (_) {
+        } catch (sessionErr) {
+          console.error('Error checking session:', sessionErr)
           // Ignore errors checking session
         }
         
@@ -137,9 +242,9 @@ export default function VerifyPage() {
   }, [router, searchParams])
   
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-4 text-center">Verifying Your Account</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">Verifying Your Account</h1>
         
         {error ? (
           <div className="text-center">
@@ -148,7 +253,7 @@ export default function VerifyPage() {
           </div>
         ) : (
           <div className="text-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">{status}</p>
           </div>
         )}
