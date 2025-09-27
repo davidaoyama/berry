@@ -1,17 +1,51 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useEffect, useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { supabase } from '@/app/lib/supabaseClient'
 
 export default function Navbar() {
-  const { data: session, status } = useSession()
-  const pathname = usePathname()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const router = useRouter()
+
+  useEffect(() => {
+    // Get initial session
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      setLoading(false)
+    }
+
+    getSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Navbar auth state changed:', event)
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" })
+    try {
+      console.log('🚪 Signing out from navbar...')
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('❌ Sign out error:', error)
+      } else {
+        console.log('✅ Signed out successfully')
+        router.push("/")
+      }
+    } catch (error) {
+      console.error('💥 Sign out error:', error)
+    }
   }
 
   // Don't show navbar on login/signup pages
@@ -29,6 +63,26 @@ export default function Navbar() {
       : "text-indigo-100 hover:bg-indigo-600 hover:text-white"
   }
 
+  // Show loading state briefly
+  if (loading) {
+    return (
+      <nav className="bg-indigo-600 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center">
+                <span className="text-2xl font-bold text-white">Berry</span>
+              </Link>
+            </div>
+            <div className="flex items-center">
+              <div className="animate-pulse text-indigo-100">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    )
+  }
+
   return (
     <nav className="bg-indigo-600 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,7 +97,7 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Public Navigation */}
-            {!session && (
+            {!user && (
               <>
                 <Link
                   href="/"
@@ -79,7 +133,7 @@ export default function Navbar() {
             )}
 
             {/* Authenticated Navigation */}
-            {session && (
+            {user && (
               <>
                 <Link
                   href="/"
@@ -129,7 +183,7 @@ export default function Navbar() {
                 {/* User Menu */}
                 <div className="flex items-center space-x-3">
                   <span className="text-indigo-100 text-sm">
-                    Welcome, {session.user?.name}
+                    Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
                   </span>
                   <button
                     onClick={handleSignOut}
@@ -163,7 +217,7 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-indigo-700">
-              {!session && (
+              {!user && (
                 <>
                   <Link
                     href="/"
@@ -203,7 +257,7 @@ export default function Navbar() {
                 </>
               )}
 
-              {session && (
+              {user && (
                 <>
                   <Link
                     href="/"
@@ -242,7 +296,7 @@ export default function Navbar() {
                   </Link>
                   <div className="border-t border-indigo-500 pt-3 mt-3">
                     <div className="px-3 py-2 text-indigo-100 text-sm">
-                      Welcome, {session.user?.name}
+                      Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
                     </div>
                     <button
                       onClick={() => {
