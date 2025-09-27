@@ -1,24 +1,45 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { supabase } from "@/app/lib/supabaseClient"
 
 export default function StudentDashboard() {
-  const { data: session, status } = useSession()
   const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login")
+    const checkUser = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        router.push("/auth?mode=signin")
+        return
+      }
+      
+      // Verify user has the correct role
+      const userRole = session.user.user_metadata?.role
+      if (userRole !== 'student') {
+        // If not a student, redirect to appropriate dashboard
+        router.push(userRole === 'org' ? '/dashboard/org' : '/dashboard')
+        return
+      }
+      
+      setUser(session.user)
+      setLoading(false)
     }
-  }, [status, router])
+    
+    checkUser()
+  }, [router])
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" })
+    await supabase.auth.signOut()
+    router.push("/auth?mode=signin")
   }
 
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -26,7 +47,7 @@ export default function StudentDashboard() {
     )
   }
 
-  if (!session) {
+  if (!user) {
     return null
   }
 
@@ -40,7 +61,7 @@ export default function StudentDashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-700">
-                Welcome, {session.user?.name}
+                Welcome, {user.user_metadata?.first_name || user.email}
               </span>
               <button
                 onClick={handleSignOut}
@@ -65,8 +86,8 @@ export default function StudentDashboard() {
                   User Information
                 </h3>
                 <div className="space-y-2">
-                  <p><strong>Name:</strong> {session.user?.name}</p>
-                  <p><strong>Email:</strong> {session.user?.email}</p>
+                  <p><strong>Name:</strong> {user.user_metadata?.first_name} {user.user_metadata?.last_name}</p>
+                  <p><strong>Email:</strong> {user.email}</p>
                   <p><strong>Role:</strong> Student</p>
                 </div>
               </div>
