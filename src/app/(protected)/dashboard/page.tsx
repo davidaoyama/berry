@@ -1,25 +1,38 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import Link from "next/link"
+import { supabase } from "@/app/lib/supabaseClient"
 
 export default function Dashboard() {
-  const { data: session, status } = useSession()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login")
+    const checkUser = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        router.push("/auth?mode=signin")
+        return
+      }
+      
+      setUser(session.user)
+      setLoading(false)
     }
-  }, [status, router])
+    
+    checkUser()
+  }, [router])
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" })
+    await supabase.auth.signOut()
+    router.push("/auth?mode=signin")
   }
 
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -27,9 +40,17 @@ export default function Dashboard() {
     )
   }
 
-  if (!session) {
+  if (!user) {
     return null
   }
+
+  // Get user's first and last name from metadata
+  const firstName = user.user_metadata?.first_name || ''
+  const lastName = user.user_metadata?.last_name || ''
+  const fullName = `${firstName} ${lastName}`.trim() || user.email
+
+  // Get email domain
+  const emailDomain = user.email?.split('@')[1] || ''
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -41,7 +62,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-700">
-                Welcome, {session.user?.name}
+                Welcome, {fullName}
               </span>
               <button
                 onClick={handleSignOut}
@@ -103,9 +124,9 @@ export default function Dashboard() {
                   User Information
                 </h3>
                 <div className="space-y-2 text-sm">
-                  <p><strong>Name:</strong> {session.user?.name}</p>
-                  <p><strong>Email:</strong> {session.user?.email}</p>
-                  <p><strong>Domain:</strong> {session.user?.email?.split('@')[1]}</p>
+                  <p><strong>Name:</strong> {fullName}</p>
+                  <p><strong>Email:</strong> {user.email}</p>
+                  <p><strong>Domain:</strong> {emailDomain}</p>
                 </div>
               </div>
             </div>

@@ -1,7 +1,8 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/app/lib/supabaseClient"
 
 interface Organization {
   id: number
@@ -16,7 +17,8 @@ interface Organization {
 }
 
 export default function AdminDashboard() {
-  const { data: session } = useSession()
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState({
     totalUsers: 156,
     totalOrganizations: 0,
@@ -33,8 +35,36 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<number | null>(null)
 
+  useEffect(() => {
+    const checkUser = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        router.push("/auth?mode=signin")
+        return
+      }
+      
+      // Verify this is an admin user
+      const userRole = session.user.user_metadata?.role
+      if (userRole !== 'admin') {
+        // If not admin, redirect to appropriate dashboard
+        router.push(userRole === 'student' ? '/dashboard/student' : 
+                   userRole === 'org' ? '/dashboard/org' : 
+                   '/dashboard')
+        return
+      }
+      
+      setUser(session.user)
+      fetchOrganizations()
+    }
+    
+    checkUser()
+  }, [router])
+
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" })
+    await supabase.auth.signOut()
+    router.push("/auth?mode=signin")
   }
 
   const fetchOrganizations = async () => {
@@ -86,9 +116,22 @@ export default function AdminDashboard() {
     }
   }
 
-  useEffect(() => {
-    fetchOrganizations()
-  }, [])
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
+  // Get user's name from metadata or email
+  const firstName = user.user_metadata?.first_name || ''
+  const lastName = user.user_metadata?.last_name || ''
+  const fullName = `${firstName} ${lastName}`.trim() || user.email
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,23 +142,15 @@ export default function AdminDashboard() {
               <h1 className="text-xl font-semibold text-red-600">Admin Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
-              {session ? (
-                <>
-                  <span className="text-sm text-gray-700">
-                    Welcome, {session.user?.name}
-                  </span>
-                  <button
-                    onClick={handleSignOut}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <span className="text-sm text-gray-700">
-                  Admin Dashboard (Development Mode)
-                </span>
-              )}
+              <span className="text-sm text-gray-700">
+                Welcome, {fullName}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
@@ -406,21 +441,10 @@ export default function AdminDashboard() {
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Admin Information</h3>
               <div className="bg-red-50 p-4 rounded-lg">
                 <div className="space-y-2">
-                  {session ? (
-                    <>
-                      <p><strong>Name:</strong> {session.user?.name}</p>
-                      <p><strong>Email:</strong> {session.user?.email}</p>
-                      <p><strong>Role:</strong> System Administrator</p>
-                      <p><strong>Access Level:</strong> Full System Access</p>
-                    </>
-                  ) : (
-                    <>
-                      <p><strong>Name:</strong> Admin User (Development)</p>
-                      <p><strong>Email:</strong> admin@berry.dev</p>
-                      <p><strong>Role:</strong> System Administrator</p>
-                      <p><strong>Access Level:</strong> Full System Access (Development Mode)</p>
-                    </>
-                  )}
+                  <p><strong>Name:</strong> {fullName}</p>
+                  <p><strong>Email:</strong> {user.email}</p>
+                  <p><strong>Role:</strong> System Administrator</p>
+                  <p><strong>Access Level:</strong> Full System Access</p>
                 </div>
               </div>
             </div>
