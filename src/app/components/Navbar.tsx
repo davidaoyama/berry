@@ -97,6 +97,17 @@ export default function Navbar() {
                 >
                   Home
                 </Link>
+
+                {user?.user_metadata?.role === "student" && (
+                <Link
+                  href="/dashboard/student/opportunities"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getActiveClass(
+                    "/dashboard/student/opportunities"
+                  )}`}
+                    >
+                      Opportunities
+                    </Link>
+                  )}
                 
                 {/* Dashboard Links */}
                 <div className="relative group">
