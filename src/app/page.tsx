@@ -1,56 +1,6 @@
-"use client"
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/app/lib/supabaseClient";
 
 export default function Home() {
-  const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        // Check if user is already logged in
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          // Determine where to redirect based on user role
-          const userRole = session.user.user_metadata?.role || 'student';
-          
-          const redirectPath = 
-            userRole === 'admin' ? '/dashboard/admin' :
-            userRole === 'org' ? '/dashboard/org' :
-            userRole === 'student' ? '/dashboard/student' :
-            '/dashboard';
-          
-          router.replace(redirectPath);
-          return;
-        }
-      } catch (error) {
-        console.error("Error checking session:", error);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkSession();
-  }, [router]);
-
-  // Show loading indicator while checking session
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Original home page content if not signed in
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex items-center justify-center min-h-screen p-8">
