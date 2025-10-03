@@ -20,6 +20,55 @@ export default function VerifyPage() {
     return ALLOWED_DOMAINS.includes(domain)
   }
   
+  // New function to ensure session is properly established and persisted
+  const ensureSessionEstablished = async (session: any) => {
+    console.log('Ensuring session is properly established...')
+    
+    try {
+      // First, explicitly set the session to ensure it's persisted
+      if (session) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        })
+        
+        if (sessionError) {
+          console.error('Error setting session:', sessionError)
+          return false
+        }
+        
+        console.log('Session explicitly set')
+      }
+      
+      // Wait a moment for session to be saved
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Verify the session was properly saved
+      const { data: sessionCheck } = await supabase.auth.getSession()
+      
+      const sessionEstablished = !!sessionCheck?.session
+      console.log('Session established:', sessionEstablished)
+      
+      if (sessionEstablished) {
+        // Set a cookie with better attributes for middleware bypass
+        document.cookie = 'auth_verification_success=true; path=/; max-age=300; SameSite=Lax'
+        
+        // Also store in localStorage as a backup
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_verified', 'true')
+          localStorage.setItem('auth_verified_at', Date.now().toString())
+        }
+        
+        return true
+      }
+      
+      return false
+    } catch (err) {
+      console.error('Error ensuring session:', err)
+      return false
+    }
+  }
+    
   useEffect(() => {
     const handleAuth = async () => {
       try {
@@ -29,10 +78,10 @@ export default function VerifyPage() {
         const errorDesc = searchParams.get('error_description')
         
         if (errorParam) {
+          // Existing error handling code...
           let errorMessage = errorDesc || `Authentication error: ${errorParam}`
           let redirectMode = "signin"
           
-          // Customize error message and redirect based on error type
           if (errorParam === 'access_denied' && errorCode === 'otp_expired') {
             errorMessage = "This magic link has expired. Please request a new one."
           } else if (errorParam === 'unauthorized' || errorCode === 'unauthorized') {
@@ -92,22 +141,13 @@ export default function VerifyPage() {
             return
           }
           
-          // IMPORTANT: Make sure session is established before redirect
-          // Add a delay to ensure session is properly set
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          // Double-check that we have a valid session
-          const { data: sessionCheck } = await supabase.auth.getSession()
-          console.log('Session after verification:', sessionCheck.session)
-          
-          if (!sessionCheck.session) {
-            console.error('No session established after verification')
-            throw new Error('Authentication successful but no session was created')
+          // Ensure session is established
+          if (data.session) {
+            await ensureSessionEstablished(data.session)
+          } else {
+            console.error('No session data returned from verifyOtp')
           }
-          
-          // Set a cookie to indicate successful verification
-          document.cookie = 'auth_verification_success=true; path=/; max-age=30'
-          
+                    
           // Get user role and redirect
           const role = data.user?.user_metadata?.role
           const redirectPath = role === 'student' ? '/dashboard/student' : 
@@ -120,12 +160,13 @@ export default function VerifyPage() {
           // Use replace instead of push for more reliable navigation
           router.replace(redirectPath)
           
-          // Fallback navigation with timeout
+          // Fallback navigation with improved reliability
           setTimeout(() => {
             if (!window.location.pathname.startsWith('/dashboard')) {
-              window.location.href = redirectPath;
+              console.log('Using fallback navigation')
+              window.location.href = redirectPath
             }
-          }, 1500);
+          }, 1500)
           
           return
         }
@@ -162,6 +203,9 @@ export default function VerifyPage() {
           return
         }
         
+        // Ensure session is established for code exchange flow
+        await ensureSessionEstablished(data.session)
+                
         // Authentication successful
         console.log('Authentication successful with code exchange!', data.user)
         
@@ -176,12 +220,13 @@ export default function VerifyPage() {
         // Use replace for more reliable navigation
         router.replace(redirectPath)
         
-        // Fallback navigation with timeout
+        // Fallback navigation with improved reliability
         setTimeout(() => {
           if (!window.location.pathname.startsWith('/dashboard')) {
-            window.location.href = redirectPath;
+            console.log('Using fallback navigation')
+            window.location.href = redirectPath
           }
-        }, 1500);
+        }, 1500)
         
       } catch (err: any) {
         console.error('Auth verification error:', err)
@@ -191,7 +236,10 @@ export default function VerifyPage() {
         try {
           const { data } = await supabase.auth.getSession()
           if (data?.session?.user) {
-            // We have a session, do additional domain validation
+            // We have a session, ensure it's properly established
+            await ensureSessionEstablished(data.session)
+            
+            // Do additional domain validation
             const email = data.session.user.email
             const userRole = data.session.user.user_metadata?.role || 'student'
             
@@ -217,12 +265,13 @@ export default function VerifyPage() {
             setStatus(`Already authenticated! Redirecting...`)
             router.replace(redirectPath)
             
-            // Fallback navigation
+            // Fallback navigation with improved reliability
             setTimeout(() => {
               if (!window.location.pathname.startsWith('/dashboard')) {
-                window.location.href = redirectPath;
+                console.log('Using fallback navigation')
+                window.location.href = redirectPath
               }
-            }, 1500);
+            }, 1500)
             
             return
           }
