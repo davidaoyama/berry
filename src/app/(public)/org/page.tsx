@@ -330,7 +330,7 @@ export default function OrganizationRegistration() {
 
                     <div>
                       <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
-                        Website URL *
+                        Website URL (need https://) *
                       </label>
                       <input
                         type="url"
