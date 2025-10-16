@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { supabase } from "@/app/lib/supabaseClient"
 import Link from "next/link"
 
@@ -16,7 +16,6 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [emailSent, setEmailSent] = useState(false)
-  const router = useRouter()
   const searchParams = useSearchParams()
   const mode = searchParams.get("mode") === "signup" ? "signup" : "signin"
 
@@ -93,47 +92,61 @@ export default function AuthPage() {
   // Handle sign-up form submission
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!email || !firstName || !lastName) {
+
+    // For students: only email required (will collect name in onboarding)
+    // For orgs: require name upfront
+    if (!email) {
+      setError("Please enter your email address")
+      return
+    }
+
+    if (role === "org" && (!firstName || !lastName)) {
       setError("Please fill in all required fields")
       return
     }
-    
+
     // Validate email format
     if (!email.includes('@')) {
       setError("Please enter a valid email address")
       return
     }
-    
+
     // Validate email domain for students
     if (role === "student" && !isAllowedDomain(email)) {
       setError(`Student registration is only available with ${ALLOWED_DOMAINS.join(" or ")} email addresses.`)
       return
     }
-    
+
     setIsLoading(true)
     setError(null)
-    
+
     try {
+      // Build user metadata
+      const userMetadata: Record<string, any> = {
+        role: role,
+        created_at: new Date().toISOString()
+      }
+
+      // Only include name for organizations (students provide this in onboarding)
+      if (role === "org") {
+        userMetadata.first_name = firstName
+        userMetadata.last_name = lastName
+        userMetadata.full_name = `${firstName} ${lastName}`
+      }
+
       // For sign-up, include user metadata
       const { error: signUpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/verify`,
           // shouldCreateUser: true is the default
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            full_name: `${firstName} ${lastName}`,
-            role: role,
-            created_at: new Date().toISOString()
-          }
+          data: userMetadata
         }
       })
-      
+
       if (signUpError) throw signUpError
       setEmailSent(true)
-      
+
     } catch (err: any) {
       console.error("Sign up error:", err)
       setError(err.message || "Failed to send verification email")
