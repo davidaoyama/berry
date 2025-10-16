@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/app/lib/supabaseClient'
 
 const US_STATES = [
   { code: 'AL', name: 'Alabama' },
@@ -138,15 +139,18 @@ export default function PostOpportunityPage() {
     setIsSubmitting(true)
 
     try {
-      // Get session token from localStorage or session storage
-      // This assumes you're storing the auth token after login
-      const token = localStorage.getItem('supabase.auth.token') // Adjust based on your auth setup
+      // Get current session from Supabase
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        throw new Error('You must be signed in to post opportunities')
+      }
 
       const response = await fetch('/api/opportunities', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify(formData)
       })
