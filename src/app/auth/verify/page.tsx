@@ -45,6 +45,42 @@ export default function VerifyPage() {
     }
   }
 
+  // Handle organization email verification and approval check
+  const handleOrgVerification = async (userId: string): Promise<string> => {
+    try {
+      // Update verification status to email_verified
+      await fetch('/api/org-verification', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId,
+          status: 'email_verified'
+        })
+      })
+
+      // Check if organization is approved
+      const orgResponse = await fetch(`/api/org-status?userId=${userId}`)
+      const orgData = await orgResponse.json()
+
+      if (orgResponse.ok && orgData.exists) {
+        // If approved, go to dashboard
+        if (orgData.approved) {
+          return '/dashboard/org'
+        }
+
+        // Otherwise, show pending approval page
+        return '/org/pending-approval'
+      }
+
+      // Default to pending if status check fails
+      return '/org/pending-approval'
+    } catch (err) {
+      console.error('Error handling org verification:', err)
+      // Default to pending approval page on error
+      return '/org/pending-approval'
+    }
+  }
+
   // New function to ensure session is properly established and persisted
   const ensureSessionEstablished = async (session: any) => {
     console.log('Ensuring session is properly established...')
@@ -181,7 +217,8 @@ export default function VerifyPage() {
             // Check if student needs onboarding
             redirectPath = await checkStudentOnboarding(data.user.id)
           } else if (role === 'org') {
-            redirectPath = '/dashboard/org'
+            // Handle organization email verification and approval check
+            redirectPath = await handleOrgVerification(data.user.id)
           } else {
             redirectPath = '/dashboard'
           }
@@ -249,7 +286,8 @@ export default function VerifyPage() {
           // Check if student needs onboarding
           redirectPath = await checkStudentOnboarding(data.user.id)
         } else if (role === 'org') {
-          redirectPath = '/dashboard/org'
+          // Handle organization email verification and approval check
+          redirectPath = await handleOrgVerification(data.user.id)
         } else {
           redirectPath = '/dashboard'
         }

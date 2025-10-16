@@ -45,7 +45,22 @@ export default function Dashboard() {
           router.replace('/dashboard/student')
         }
       } else if (role === 'org') {
-        router.replace('/dashboard/org')
+        // Check organization approval status
+        try {
+          const response = await fetch(`/api/org-status?userId=${session.user.id}`)
+          const data = await response.json()
+
+          if (data.exists && !data.approved) {
+            // Organization not yet approved, redirect to pending page
+            router.replace('/org/pending-approval')
+            return
+          }
+
+          router.replace('/dashboard/org')
+        } catch (err) {
+          console.error('Error checking org status:', err)
+          router.replace('/dashboard/org')
+        }
       } else if (role === 'admin') {
         router.replace('/dashboard/admin')
       } else {

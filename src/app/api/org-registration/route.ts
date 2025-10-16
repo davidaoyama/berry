@@ -210,8 +210,78 @@ export async function POST(request: NextRequest) {
       verification_status: data.verification_status
     })
 
-    // TODO: Send email verification to contactEmail
-    // This would integrate with an email service like SendGrid, Resend, etc.
+    // Create auth.users account for the organization
+    // NOTE: This requires Supabase Service Role Key for admin.createUser
+    try {
+      // Check if user already exists
+      const { data: existingUsers } = await supabase.auth.admin.listUsers()
+      const userExists = existingUsers?.users?.some(u => u.email === body.contactEmail)
+
+      let authUserId: string | null = null
+
+      if (!userExists) {
+        // Create new auth user
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: body.contactEmail,
+          email_confirm: false, // User must verify email via magic link
+          user_metadata: {
+            role: 'org',
+            org_name: body.organizationName,
+            org_id: data.id,
+            contact_name: body.contactName,
+            contact_role: body.contactRole
+          }
+        })
+
+        if (authError) {
+          console.error('Error creating auth user:', authError)
+          // Don't fail the whole request - org is still saved
+          // Admin can manually create account later
+        } else if (authData.user) {
+          authUserId = authData.user.id
+          console.log('Auth user created successfully:', authData.user.id)
+
+          // Update organizations table with user_id
+          // NOTE: This requires user_id column in organizations table (run migration first!)
+          const { error: updateError } = await supabase
+            .from('organizations')
+            .update({ user_id: authUserId })
+            .eq('id', data.id)
+
+          if (updateError) {
+            console.error('Error linking user_id to organization:', updateError)
+          }
+
+          // Send magic link for email verification
+          const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+            email: body.contactEmail,
+            options: {
+              emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify`
+            }
+          })
+
+          if (magicLinkError) {
+            console.error('Error sending magic link:', magicLinkError)
+          } else {
+            console.log('Magic link sent to:', body.contactEmail)
+          }
+        }
+      } else {
+        console.log('User with this email already exists in auth.users')
+        // Try to link existing user to organization
+        const existingUser = existingUsers?.users?.find(u => u.email === body.contactEmail)
+        if (existingUser) {
+          authUserId = existingUser.id
+          await supabase
+            .from('organizations')
+            .update({ user_id: authUserId })
+            .eq('id', data.id)
+        }
+      }
+    } catch (authErr) {
+      console.error('Error in auth account creation:', authErr)
+      // Continue - organization is still registered, just no auth account yet
+    }
 
     return NextResponse.json(
       {
