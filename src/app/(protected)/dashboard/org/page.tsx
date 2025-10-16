@@ -193,6 +193,7 @@ export default function OrgDashboard() {
 
               <button
                 disabled={!organization?.approved}
+                onClick={() => router.push('/dashboard/org/my-opportunities')}
                 className="flex flex-col items-center justify-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="h-8 w-8 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
