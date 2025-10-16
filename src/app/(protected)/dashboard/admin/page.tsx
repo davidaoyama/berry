@@ -13,6 +13,7 @@ interface Organization {
   org_description: string
   business_id: string
   approved: boolean
+  verification_status: 'pending' | 'email_verified' | 'approved' | 'rejected'
   created_at: string
 }
 
@@ -132,6 +133,38 @@ export default function AdminDashboard() {
   const firstName = user.user_metadata?.first_name || ''
   const lastName = user.user_metadata?.last_name || ''
   const fullName = `${firstName} ${lastName}`.trim() || user.email
+
+  // Helper function to get verification status badge
+  const getVerificationBadge = (status: Organization['verification_status']) => {
+    switch (status) {
+      case 'pending':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            Awaiting Email Verification
+          </span>
+        )
+      case 'email_verified':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            Email Verified - Ready for Review
+          </span>
+        )
+      case 'approved':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Approved
+          </span>
+        )
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            Rejected
+          </span>
+        )
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -336,9 +369,7 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <h4 className="text-lg font-semibold text-gray-900">{org.org_name}</h4>
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Pending
-                              </span>
+                              {getVerificationBadge(org.verification_status)}
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                               <div>
@@ -397,9 +428,7 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <h4 className="text-lg font-semibold text-gray-900">{org.org_name}</h4>
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Approved
-                              </span>
+                              {getVerificationBadge(org.verification_status)}
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                               <div>

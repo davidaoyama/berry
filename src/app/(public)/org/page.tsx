@@ -1,21 +1,59 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 
+type OrganizationType = "university" | "business" | "nonprofit" | "other"
+
+interface FormData {
+  // Step 1: Basic Company Information
+  organizationName: string
+  organizationType: OrganizationType | ""
+  website: string
+  officialEmailDomain: string
+  phoneNumber: string
+  businessAddress: string
+  linkedinUrl: string
+
+  // Step 2: Verification & Contact
+  contactName: string
+  contactRole: string
+  contactEmail: string
+  businessId: string
+
+  // Verification documents (type-specific)
+  ein: string
+  ipeds: string
+  businessLicense: string
+  nonprofit501c3: string
+
+  // Step 3: Goals
+  goalsDescription: string
+}
+
 export default function OrganizationRegistration() {
-  const router = useRouter()
+  const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<FormData>({
     organizationName: "",
     organizationType: "",
+    website: "",
+    officialEmailDomain: "",
+    phoneNumber: "",
+    businessAddress: "",
+    linkedinUrl: "",
+    contactName: "",
+    contactRole: "",
+    contactEmail: "",
     businessId: "",
-    description: "",
-    email: "",
-    phoneNumber: ""
+    ein: "",
+    ipeds: "",
+    businessLicense: "",
+    nonprofit501c3: "",
+    goalsDescription: ""
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -26,11 +64,97 @@ export default function OrganizationRegistration() {
     }))
   }
 
+  // Validate current step before proceeding
+  const validateStep = (step: number): boolean => {
+    setError("")
+
+    if (step === 1) {
+      if (!formData.organizationName || !formData.organizationType || !formData.website ||
+          !formData.officialEmailDomain || !formData.phoneNumber || !formData.businessAddress) {
+        setError("Please fill in all required fields in Step 1")
+        return false
+      }
+
+      // Validate email domain format
+      const domainRegex = /^[a-z0-9.-]+\.[a-z]{2,}$/i
+      if (!domainRegex.test(formData.officialEmailDomain)) {
+        setError("Please enter a valid email domain (e.g., company.com)")
+        return false
+      }
+
+      // Validate URL format
+      try {
+        new URL(formData.website)
+      } catch {
+        setError("Please enter a valid website URL")
+        return false
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.contactName || !formData.contactRole || !formData.contactEmail || !formData.businessId) {
+        setError("Please fill in all required fields in Step 2")
+        return false
+      }
+
+      // Validate that contact email matches official domain
+      const contactDomain = formData.contactEmail.split('@')[1]?.toLowerCase()
+      const officialDomain = formData.officialEmailDomain.toLowerCase()
+
+      if (contactDomain !== officialDomain) {
+        setError(`Contact email must use your official domain: @${formData.officialEmailDomain}`)
+        return false
+      }
+
+      // Validate type-specific fields
+      if (formData.organizationType === "university" && !formData.ipeds && !formData.officialEmailDomain.endsWith('.edu')) {
+        setError("Universities must provide IPEDS/NCES ID or use a .edu email domain")
+        return false
+      }
+
+      if (formData.organizationType === "business" && (!formData.ein || !formData.businessLicense)) {
+        setError("Businesses must provide EIN and Business License Number")
+        return false
+      }
+
+      if (formData.organizationType === "nonprofit" && (!formData.ein || !formData.nonprofit501c3)) {
+        setError("Nonprofits must provide EIN and 501(c)(3) documentation")
+        return false
+      }
+    }
+
+    if (step === 3) {
+      if (!formData.goalsDescription || formData.goalsDescription.length < 50) {
+        setError("Please provide a detailed description of your goals (minimum 50 characters)")
+        return false
+      }
+    }
+
+    return true
+  }
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => prev + 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const handlePrevious = () => {
+    setCurrentStep(prev => prev - 1)
+    setError("")
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validateStep(3)) {
+      return
+    }
+
     setIsSubmitting(true)
     setError("")
-    setSuccess(false)
 
     try {
       const response = await fetch("/api/org-registration", {
@@ -41,43 +165,52 @@ export default function OrganizationRegistration() {
         body: JSON.stringify(formData),
       })
 
+      const data = await response.json()
+
       if (response.ok) {
         setSuccess(true)
-        // Reset form
-        setFormData({
-          organizationName: "",
-          organizationType: "",
-          businessId: "",
-          description: "",
-          email: "",
-          phoneNumber: ""
-        })
       } else {
-        const errorData = await response.json()
-        setError(errorData.message || "Failed to submit registration")
+        setError(data.message || "Failed to submit registration")
       }
     } catch (error) {
-      setError("An error occurred while submitting the form")
+      setError("An error occurred while submitting the form. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  // Success screen
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <div className="bg-white shadow-lg rounded-lg p-8 text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+              <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Registration Submitted!</h2>
-            <p className="text-gray-600 mb-6">
-              Thank you for registering your organization. Your application has been submitted and is pending approval. 
-              You will receive an email notification once your organization has been reviewed and approved.
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Registration Submitted!</h2>
+            <p className="text-lg text-gray-600 mb-4">
+              We've sent you an email confirmation to <strong>{formData.contactEmail}</strong>
             </p>
+            <p className="text-gray-600 mb-2">
+              Please verify your email before moving forward.
+            </p>
+            <p className="text-gray-600 mb-8">
+              Expect verification and approval within <strong>2-3 business days</strong>.
+            </p>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 text-left">
+              <h3 className="font-semibold text-blue-900 mb-2">What happens next?</h3>
+              <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
+                <li>Check your email and verify your address</li>
+                <li>Our team will manually review your application</li>
+                <li>You'll receive approval notification within 2-3 business days</li>
+                <li>Once approved, you can sign in and start posting opportunities</li>
+              </ol>
+            </div>
+
             <div className="space-y-3">
               <Link
                 href="/"
@@ -85,13 +218,6 @@ export default function OrganizationRegistration() {
               >
                 Return to Home
               </Link>
-              <br />
-              <button
-                onClick={() => setSuccess(false)}
-                className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Register Another Organization
-              </button>
             </div>
           </div>
         </div>
@@ -99,10 +225,18 @@ export default function OrganizationRegistration() {
     )
   }
 
+  // Progress indicator
+  const steps = [
+    { number: 1, title: "Company Info", desc: "Basic information" },
+    { number: 2, title: "Verification", desc: "Contact & documents" },
+    { number: 3, title: "Goals", desc: "Your mission" }
+  ]
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white shadow-lg rounded-lg p-8">
+          {/* Header */}
           <div className="mb-8">
             <Link href="/" className="text-indigo-600 hover:text-indigo-500 flex items-center mb-4">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,177 +246,475 @@ export default function OrganizationRegistration() {
             </Link>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Organization Registration</h1>
             <p className="text-gray-600">
-              Please fill out this form to register your organization. All applications will be reviewed manually before approval.
+              Complete this application to connect with LAUSD students through BERRY
             </p>
           </div>
 
+          {/* Progress Steps */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              {steps.map((step, idx) => (
+                <div key={step.number} className="flex items-center flex-1">
+                  <div className="flex flex-col items-center flex-1">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold
+                      ${currentStep >= step.number
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-200 text-gray-600'}`}
+                    >
+                      {step.number}
+                    </div>
+                    <div className="text-center mt-2">
+                      <div className="text-xs font-medium text-gray-900">{step.title}</div>
+                      <div className="text-xs text-gray-500">{step.desc}</div>
+                    </div>
+                  </div>
+                  {idx < steps.length - 1 && (
+                    <div className={`h-1 flex-1 mx-2 ${currentStep > step.number ? 'bg-indigo-600' : 'bg-gray-200'}`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
               {error}
             </div>
           )}
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Organization Information */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Organization Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Organization Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="organizationName"
-                    name="organizationName"
-                    required
-                    value={formData.organizationName}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter your organization name"
-                  />
-                </div>
+            {/* STEP 1: Basic Company Information */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Company Information</h2>
 
-                <div>
-                  <label htmlFor="organizationType" className="block text-sm font-medium text-gray-700 mb-2">
-                    Organization Type *
-                  </label>
-                  <select
-                    id="organizationType"
-                    name="organizationType"
-                    required
-                    value={formData.organizationType}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value="">Select Type</option>
-                    <option value="nonprofit">Non-Profit</option>
-                    <option value="educational">Educational Institution</option>
-                    <option value="government">Government Agency</option>
-                    <option value="community">Community Organization</option>
-                    <option value="healthcare">Healthcare Organization</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-2">
+                        Organization Name (Official Legal Name) *
+                      </label>
+                      <input
+                        type="text"
+                        id="organizationName"
+                        name="organizationName"
+                        required
+                        value={formData.organizationName}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="e.g., Los Angeles Science Foundation"
+                      />
+                    </div>
 
-                <div>
-                  <label htmlFor="businessId" className="block text-sm font-medium text-gray-700 mb-2">
-                    Business ID *
-                  </label>
-                  <input
-                    type="text"
-                    id="businessId"
-                    name="businessId"
-                    required
-                    value={formData.businessId}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter your business registration ID"
-                  />
-                </div>
+                    <div>
+                      <label htmlFor="organizationType" className="block text-sm font-medium text-gray-700 mb-2">
+                        Type of Organization *
+                      </label>
+                      <select
+                        id="organizationType"
+                        name="organizationType"
+                        required
+                        value={formData.organizationType}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="">Select Type</option>
+                        <option value="university">University / College / School</option>
+                        <option value="nonprofit">Non-Profit</option>
+                        <option value="business">Local Business</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Login Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Email address for organization login"
-                  />
-                </div>
+                    <div>
+                      <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
+                        Website URL (need https://) *
+                      </label>
+                      <input
+                        type="url"
+                        id="website"
+                        name="website"
+                        required
+                        value={formData.website}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="https://www.example.com"
+                      />
+                    </div>
 
-                <div>
-                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    required
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Organization contact phone number"
-                  />
-                </div>
-              </div>
+                    <div>
+                      <label htmlFor="officialEmailDomain" className="block text-sm font-medium text-gray-700 mb-2">
+                        Official Email Domain *
+                      </label>
+                      <input
+                        type="text"
+                        id="officialEmailDomain"
+                        name="officialEmailDomain"
+                        required
+                        value={formData.officialEmailDomain}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="e.g., company.com"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Enter domain only (e.g., usc.edu, not @usc.edu)</p>
+                    </div>
 
-              <div className="mt-6">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  Organization Description *
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  required
-                  rows={4}
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Describe your organization's mission, goals, and the opportunities you plan to offer to students..."
-                />
-              </div>
-            </div>
+                    <div>
+                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        required
+                        value={formData.phoneNumber}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="(123) 456-7890"
+                      />
+                    </div>
 
-            {/* Information Notice */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">
-                    Application Review Process
-                  </h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <p>
-                      Your organization registration will be reviewed by our team. Once approved, you'll be able to:
-                    </p>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      <li>Sign in to your organization dashboard</li>
-                      <li>Create and manage student opportunities</li>
-                      <li>Connect with students in your area</li>
-                    </ul>
+                    <div className="md:col-span-2">
+                      <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-2">
+                        Business Address *
+                      </label>
+                      <input
+                        type="text"
+                        id="businessAddress"
+                        name="businessAddress"
+                        required
+                        value={formData.businessAddress}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="123 Main St, Los Angeles, CA 90001"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="linkedinUrl" className="block text-sm font-medium text-gray-700 mb-2">
+                        LinkedIn Page or Social Media (Optional)
+                      </label>
+                      <input
+                        type="url"
+                        id="linkedinUrl"
+                        name="linkedinUrl"
+                        value={formData.linkedinUrl}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="https://linkedin.com/company/..."
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-end space-x-4">
-              <Link
-                href="/"
-                className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
-              >
-                Cancel
-              </Link>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Registration"
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
+                  >
+                    Next: Verification & Contact →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: Verification & Contact */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Verification & Contact Authenticity</h2>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="contactName"
+                        name="contactName"
+                        required
+                        value={formData.contactName}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Jane Smith"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="contactRole" className="block text-sm font-medium text-gray-700 mb-2">
+                        Role / Title *
+                      </label>
+                      <input
+                        type="text"
+                        id="contactRole"
+                        name="contactRole"
+                        required
+                        value={formData.contactRole}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="e.g., Outreach Coordinator, Recruiter"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                        Official Organizational Email *
+                      </label>
+                      <input
+                        type="email"
+                        id="contactEmail"
+                        name="contactEmail"
+                        required
+                        value={formData.contactEmail}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder={`you@${formData.officialEmailDomain || 'yourcompany.com'}`}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Must match your official domain. No Gmail, Outlook, etc.
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="businessId" className="block text-sm font-medium text-gray-700 mb-2">
+                        Business ID / Org ID *
+                      </label>
+                      <input
+                        type="text"
+                        id="businessId"
+                        name="businessId"
+                        required
+                        value={formData.businessId}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Enter your official registration ID"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Type-Specific Verification Documents */}
+                {formData.organizationType && (
+                  <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-yellow-900 mb-4">
+                      Supporting Documents - {formData.organizationType === "university" ? "University" :
+                                               formData.organizationType === "business" ? "Business" :
+                                               formData.organizationType === "nonprofit" ? "Non-Profit" : "Other"}
+                    </h3>
+
+                    {formData.organizationType === "university" && (
+                      <div className="space-y-4">
+                        <p className="text-sm text-yellow-800">
+                          Universities must provide IPEDS/NCES Institution ID OR use a .edu email domain
+                        </p>
+                        <div>
+                          <label htmlFor="ipeds" className="block text-sm font-medium text-gray-700 mb-2">
+                            IPEDS or NCES Institution ID
+                          </label>
+                          <input
+                            type="text"
+                            id="ipeds"
+                            name="ipeds"
+                            value={formData.ipeds}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Enter IPEDS/NCES ID (required if not using .edu)"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.organizationType === "business" && (
+                      <div className="space-y-4">
+                        <p className="text-sm text-yellow-800 mb-4">
+                          Businesses must provide EIN and Business License Number
+                        </p>
+                        <div>
+                          <label htmlFor="ein" className="block text-sm font-medium text-gray-700 mb-2">
+                            Employer Identification Number (EIN) *
+                          </label>
+                          <input
+                            type="text"
+                            id="ein"
+                            name="ein"
+                            required
+                            value={formData.ein}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="12-3456789"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="businessLicense" className="block text-sm font-medium text-gray-700 mb-2">
+                            Business License Number *
+                          </label>
+                          <input
+                            type="text"
+                            id="businessLicense"
+                            name="businessLicense"
+                            required
+                            value={formData.businessLicense}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="City/State license number"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.organizationType === "nonprofit" && (
+                      <div className="space-y-4">
+                        <p className="text-sm text-yellow-800 mb-4">
+                          Non-profits must provide EIN and 501(c)(3) documentation
+                        </p>
+                        <div>
+                          <label htmlFor="ein" className="block text-sm font-medium text-gray-700 mb-2">
+                            Employer Identification Number (EIN) *
+                          </label>
+                          <input
+                            type="text"
+                            id="ein"
+                            name="ein"
+                            required
+                            value={formData.ein}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="12-3456789"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="nonprofit501c3" className="block text-sm font-medium text-gray-700 mb-2">
+                            501(c)(3) Letter Reference / Confirmation Number *
+                          </label>
+                          <input
+                            type="text"
+                            id="nonprofit501c3"
+                            name="nonprofit501c3"
+                            required
+                            value={formData.nonprofit501c3}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="IRS determination letter reference"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Please provide reference number or confirmation that you have 501(c)(3) status
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.organizationType === "other" && (
+                      <div>
+                        <p className="text-sm text-yellow-800">
+                          Please ensure your Business ID is valid and verifiable
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
-              </button>
-            </div>
+
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    onClick={handlePrevious}
+                    className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
+                  >
+                    Next: Goals & Mission →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: Goals */}
+            {currentStep === 3 && (
+              <div className="space-y-6">
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Organization Goals</h2>
+
+                  <div>
+                    <label htmlFor="goalsDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                      What are your organization's goals with LAUSD students? *
+                    </label>
+                    <textarea
+                      id="goalsDescription"
+                      name="goalsDescription"
+                      required
+                      rows={6}
+                      value={formData.goalsDescription}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Describe what opportunities you plan to offer, how you'll support students, and your mission for engaging with the LAUSD community..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Minimum 50 characters. Be specific about programs, internships, or opportunities you'll provide.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Final Confirmation */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800">
+                        What happens after submission?
+                      </h3>
+                      <div className="mt-2 text-sm text-blue-700">
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>You'll receive an email confirmation at <strong>{formData.contactEmail || "your email"}</strong></li>
+                          <li>Verify your email before moving forward</li>
+                          <li>Expect verification within 2-3 business days</li>
+                          <li>Once approved, you can sign in and start posting opportunities</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    onClick={handlePrevious}
+                    className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit Registration"
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>

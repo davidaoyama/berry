@@ -17,8 +17,8 @@ export default function Navbar() {
     router.push("/")
   }
 
-  // Don't show navbar on login/signup/auth pages
-  if (pathname === "/login" || pathname === "/signup" || pathname === "/auth" || pathname === "/org" || pathname === "/org/login") {
+  // Don't show navbar on auth pages and org registration
+  if (pathname === "/auth" || pathname === "/org" || pathname === "/org/login" || pathname.startsWith("/auth/")) {
     return null
   }
 
@@ -62,13 +62,13 @@ export default function Navbar() {
                   Home
                 </Link>
                 <Link
-                  href="/auth"
+                  href="/auth?mode=signin"
                   className="bg-white text-indigo-600 hover:bg-gray-100 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
-                  href="/auth"
+                  href="/auth?mode=signup"
                   className="bg-indigo-700 text-white hover:bg-indigo-800 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Sign Up
@@ -190,14 +190,14 @@ export default function Navbar() {
                     Home
                   </Link>
                   <Link
-                    href="/auth"
+                    href="/auth?mode=signin"
                     className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign In
                   </Link>
                   <Link
-                    href="/auth"
+                    href="/auth?mode=signup"
                     className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >

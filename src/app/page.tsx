@@ -14,13 +14,13 @@ export default function Home() {
           
           <div className="flex gap-4 justify-center items-center flex-col sm:flex-row">
             <Link
-              href="/signup"
+              href="/auth?mode=signup"
               className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-indigo-600 text-white gap-2 hover:bg-indigo-700 font-medium text-sm sm:text-base h-12 px-8 sm:w-auto"
             >
               Student Sign Up
             </Link>
             <Link
-              href="/login"
+              href="/auth?mode=signin"
               className="rounded-full border border-solid border-gray-300 transition-colors flex items-center justify-center bg-white text-gray-900 gap-2 hover:bg-gray-50 font-medium text-sm sm:text-base h-12 px-8 sm:w-auto"
             >
               Student Sign In

@@ -77,10 +77,48 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // Update organization approval status
+    // If approving, first check that email is verified
+    if (approved) {
+      const { data: org, error: fetchError } = await supabase
+        .from('organizations')
+        .select('verification_status')
+        .eq('id', organizationId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching organization:', fetchError)
+        return NextResponse.json(
+          {
+            message: "Failed to fetch organization details",
+            error: fetchError.message
+          },
+          { status: 500 }
+        )
+      }
+
+      // Validate that email is verified before allowing approval
+      if (org.verification_status !== 'email_verified' && org.verification_status !== 'approved') {
+        return NextResponse.json(
+          {
+            message: "Cannot approve organization: Email not yet verified. Please ensure the organization has verified their email before approving.",
+            currentStatus: org.verification_status
+          },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Update organization approval status and verification_status
+    const updateData: any = { approved }
+    if (approved) {
+      updateData.verification_status = 'approved'
+    } else {
+      updateData.verification_status = 'rejected'
+    }
+
     const { data, error } = await supabase
       .from('organizations')
-      .update({ approved })
+      .update(updateData)
       .eq('id', organizationId)
       .select()
       .single()

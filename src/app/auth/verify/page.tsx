@@ -20,10 +20,71 @@ export default function VerifyPage() {
     return ALLOWED_DOMAINS.includes(domain)
   }
   
+  // Check if student needs onboarding
+  const checkStudentOnboarding = async (userId: string): Promise<string> => {
+    try {
+      const response = await fetch(`/api/student-profile?userId=${userId}`)
+      const data = await response.json()
+
+      if (!response.ok || !data.exists) {
+        // No profile exists, need onboarding
+        return '/onboarding/profile'
+      }
+
+      if (!data.onboardingCompleted) {
+        // Profile exists but interests not completed
+        return '/onboarding/interests'
+      }
+
+      // Onboarding complete, go to dashboard
+      return '/dashboard/student'
+    } catch (err) {
+      console.error('Error checking student onboarding:', err)
+      // Default to onboarding if check fails
+      return '/onboarding/profile'
+    }
+  }
+
+  // Handle organization email verification and approval check
+  const handleOrgVerification = async (userId: string): Promise<string> => {
+    try {
+      // Update verification status to email_verified
+      await fetch('/api/org-verification', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId,
+          status: 'email_verified'
+        })
+      })
+
+      // Check if organization is approved
+      const orgResponse = await fetch(`/api/org-status?userId=${userId}`)
+      const orgData = await orgResponse.json()
+
+      if (orgResponse.ok && orgData.exists) {
+        // If approved, go to dashboard
+        if (orgData.approved) {
+          return '/dashboard/org'
+        }
+
+        // Otherwise, show pending approval page
+        return '/org/pending-approval'
+      }
+
+      // Default to pending if status check fails
+      return '/org/pending-approval'
+    } catch (err) {
+      console.error('Error handling org verification:', err)
+      // Default to pending approval page on error
+      return '/org/pending-approval'
+    }
+  }
+
   // New function to ensure session is properly established and persisted
   const ensureSessionEstablished = async (session: any) => {
     console.log('Ensuring session is properly established...')
-    
+
     try {
       // First, explicitly set the session to ensure it's persisted
       if (session) {
@@ -31,37 +92,37 @@ export default function VerifyPage() {
           access_token: session.access_token,
           refresh_token: session.refresh_token
         })
-        
+
         if (sessionError) {
           console.error('Error setting session:', sessionError)
           return false
         }
-        
+
         console.log('Session explicitly set')
       }
-      
+
       // Wait a moment for session to be saved
       await new Promise(resolve => setTimeout(resolve, 500))
-      
+
       // Verify the session was properly saved
       const { data: sessionCheck } = await supabase.auth.getSession()
-      
+
       const sessionEstablished = !!sessionCheck?.session
       console.log('Session established:', sessionEstablished)
-      
+
       if (sessionEstablished) {
         // Set a cookie with better attributes for middleware bypass
         document.cookie = 'auth_verification_success=true; path=/; max-age=300; SameSite=Lax'
-        
+
         // Also store in localStorage as a backup
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth_verified', 'true')
           localStorage.setItem('auth_verified_at', Date.now().toString())
         }
-        
+
         return true
       }
-      
+
       return false
     } catch (err) {
       console.error('Error ensuring session:', err)
@@ -147,27 +208,35 @@ export default function VerifyPage() {
           } else {
             console.error('No session data returned from verifyOtp')
           }
-                    
-          // Get user role and redirect
+
+          // Get user role and determine redirect path
           const role = data.user?.user_metadata?.role
-          const redirectPath = role === 'student' ? '/dashboard/student' : 
-                              role === 'org' ? '/dashboard/org' : 
-                              '/dashboard'
-          
+          let redirectPath: string
+
+          if (role === 'student') {
+            // Check if student needs onboarding
+            redirectPath = await checkStudentOnboarding(data.user.id)
+          } else if (role === 'org') {
+            // Handle organization email verification and approval check
+            redirectPath = await handleOrgVerification(data.user.id)
+          } else {
+            redirectPath = '/dashboard'
+          }
+
           console.log('Redirecting to:', redirectPath)
-          setStatus(`Authentication successful! Redirecting to dashboard...`)
-          
+          setStatus(`Authentication successful! Redirecting...`)
+
           // Use replace instead of push for more reliable navigation
           router.replace(redirectPath)
-          
+
           // Fallback navigation with improved reliability
           setTimeout(() => {
-            if (!window.location.pathname.startsWith('/dashboard')) {
+            if (!window.location.pathname.startsWith('/dashboard') && !window.location.pathname.startsWith('/onboarding')) {
               console.log('Using fallback navigation')
               window.location.href = redirectPath
             }
           }, 1500)
-          
+
           return
         }
         
@@ -205,24 +274,32 @@ export default function VerifyPage() {
         
         // Ensure session is established for code exchange flow
         await ensureSessionEstablished(data.session)
-                
+
         // Authentication successful
         console.log('Authentication successful with code exchange!', data.user)
-        
-        // Get user role and redirect
+
+        // Get user role and determine redirect path
         const role = data.user?.user_metadata?.role
-        const redirectPath = role === 'student' ? '/dashboard/student' : 
-                           role === 'org' ? '/dashboard/org' : 
-                           '/dashboard'
-        
-        setStatus(`Authentication successful! Redirecting to dashboard...`)
-        
+        let redirectPath: string
+
+        if (role === 'student') {
+          // Check if student needs onboarding
+          redirectPath = await checkStudentOnboarding(data.user.id)
+        } else if (role === 'org') {
+          // Handle organization email verification and approval check
+          redirectPath = await handleOrgVerification(data.user.id)
+        } else {
+          redirectPath = '/dashboard'
+        }
+
+        setStatus(`Authentication successful! Redirecting...`)
+
         // Use replace for more reliable navigation
         router.replace(redirectPath)
-        
+
         // Fallback navigation with improved reliability
         setTimeout(() => {
-          if (!window.location.pathname.startsWith('/dashboard')) {
+          if (!window.location.pathname.startsWith('/dashboard') && !window.location.pathname.startsWith('/onboarding')) {
             console.log('Using fallback navigation')
             window.location.href = redirectPath
           }
