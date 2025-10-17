@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
       if (!session) {
         console.log('No session found in middleware')
       }
-      
+
       // If user just verified (cookie exists), let them through this one time
       if (authJustVerified?.value === 'true') {
         console.log('Auth just verified, bypassing session check')
