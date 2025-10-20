@@ -24,21 +24,37 @@ export async function GET(req: Request) {
   const svc = createServiceClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
   try {
-    // pagination
     const url = new URL(req.url);
     const page = Math.max(1, Number(url.searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get("pageSize") || "50")));
     const from = (page - 1) * pageSize;
     const to = page * pageSize - 1;
 
-    // fetch all opportunities ordered by soonest application_deadline
-    const { data: opportunitiesRaw, error: oppError } = await svc
+    // optional filters
+    const searchRaw = url.searchParams.get("search") ?? "";
+    const search = searchRaw.trim();
+    const category = url.searchParams.get("category") ?? "";
+
+    // build query
+    let q = svc
       .from("opportunities")
       .select(
         "id, opportunity_name, brief_description, category, opportunity_type, application_deadline, organization_id"
       )
-      .order("application_deadline", { ascending: true })
-      .range(from, to);
+      .order("application_deadline", { ascending: true });
+
+    if (category) {
+      q = q.eq("category", category);
+    }
+
+    if (search) {
+      // ilike pattern
+      const pattern = `%${search.replace(/%/g, "\\%")}%`;
+      // search in name OR brief_description
+      q = q.or(`opportunity_name.ilike.${pattern},brief_description.ilike.${pattern}`);
+    }
+
+    const { data: opportunitiesRaw, error: oppError } = await q.range(from, to);
 
     if (oppError) {
       console.error("Error fetching opportunities:", oppError);
@@ -73,7 +89,9 @@ export async function GET(req: Request) {
       org_name: o.organization_id ? orgMap.get(o.organization_id) ?? null : null,
     }));
 
-    console.log(`student-explore: returned=${opportunities.length} page=${page} pageSize=${pageSize}`);
+    console.log(
+      `student-explore: returned=${opportunities.length} page=${page} pageSize=${pageSize} search="${search}" category="${category}"`
+    );
 
     return NextResponse.json({
       data: opportunities,
