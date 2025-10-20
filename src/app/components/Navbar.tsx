@@ -39,6 +39,9 @@ export default function Navbar() {
     user.email?.split("@")[0]
   ) : null
 
+  // determine role for conditional links
+  const userRole = user?.user_metadata?.role
+
   return (
     <nav className="bg-indigo-600 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -135,6 +138,26 @@ export default function Navbar() {
                     </div>
                   </div>
                 </div>
+
+                {/* Student-only: My Feed (desktop only - add mobile) */}
+                {userRole === "student" && (
+                  <Link
+                    href="/dashboard/student/student-feed"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getActiveClass("/dashboard/student/student-feed")}`}
+                  >
+                    My Feed
+                  </Link>
+                )}
+
+                { /* Student-only: Explore page (desktop only - add mobile) */}
+                {userRole === "student" && (
+                  <Link
+                    href="/dashboard/student/student-explore"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getActiveClass("/dashboard/student/explore")}`}
+                  >
+                    Explore
+                  </Link>
+                )}
 
                 {/* User Menu */}
                 <div className="flex items-center space-x-3">
