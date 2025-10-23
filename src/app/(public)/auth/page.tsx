@@ -53,37 +53,51 @@ export default function AuthPage() {
   // Handle sign-in form submission
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validate email format
     if (!email || !email.includes('@')) {
       setError("Please enter a valid email address")
       return
     }
-    
+
     // Domain validation for students - only if role is explicitly selected as student
     if (role === "student" && !isAllowedDomain(email)) {
       setError(`Student accounts require an email address from ${ALLOWED_DOMAINS.join(" or ")}.`)
       return
     }
-    
+
     setIsLoading(true)
     setError(null)
-    
+
     try {
+      // Use signInWithOtp with shouldCreateUser: false to prevent new user creation during sign-in
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/verify`,
-          // Don't specify shouldCreateUser to use default Supabase behavior
+          shouldCreateUser: false // Don't create new users during sign-in
         }
       })
-      
-      if (signInError) throw signInError
+
+      if (signInError) {
+        // If error is about user not found, show helpful message
+        if (signInError.message.includes('not found') || signInError.message.includes('User not found') || signInError.message.includes('Signups not allowed')) {
+          setError("No account found with this email. Please sign up first.")
+        } else {
+          throw signInError
+        }
+        return
+      }
+
       setEmailSent(true)
-      
+
     } catch (err: any) {
       console.error("Sign in error:", err)
-      setError(err.message || "Failed to send sign in link")
+      if (err.message.includes('not found') || err.message.includes('User not found') || err.message.includes('Signups not allowed')) {
+        setError("No account found with this email. Please sign up first.")
+      } else {
+        setError(err.message || "Failed to send sign in link")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -93,21 +107,21 @@ export default function AuthPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // For students: only email required (will collect name in onboarding)
-    // For orgs: require name upfront
+    // Validate email is provided
     if (!email) {
       setError("Please enter your email address")
-      return
-    }
-
-    if (role === "org" && (!firstName || !lastName)) {
-      setError("Please fill in all required fields")
       return
     }
 
     // Validate email format
     if (!email.includes('@')) {
       setError("Please enter a valid email address")
+      return
+    }
+
+    // For organizations: require name upfront
+    if (role === "org" && (!firstName || !lastName)) {
+      setError("Please fill in all required fields")
       return
     }
 
@@ -134,12 +148,12 @@ export default function AuthPage() {
         userMetadata.full_name = `${firstName} ${lastName}`
       }
 
-      // For sign-up, include user metadata
+      // For sign-up, include user metadata and ensure user creation is allowed
       const { error: signUpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/verify`,
-          // shouldCreateUser: true is the default
+          shouldCreateUser: true, // Explicitly allow user creation during sign-up
           data: userMetadata
         }
       })
@@ -338,8 +352,8 @@ export default function AuthPage() {
               )}
             </div>
             
-            {/* Additional fields for sign-up */}
-            {mode === "signup" && (
+            {/* Additional fields for sign-up - only for organizations */}
+            {mode === "signup" && role === "org" && (
               <>
                 <div>
                   <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
@@ -356,7 +370,7 @@ export default function AuthPage() {
                     placeholder="First Name"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
                     Last Name
@@ -472,6 +486,9 @@ export default function AuthPage() {
                   <div className="mt-2 text-sm text-blue-700">
                     <p>
                       Student accounts require an email address from one of our approved educational domains: {ALLOWED_DOMAINS.join(", ")}
+                    </p>
+                    <p className="mt-2">
+                      After verifying your email, you'll complete your profile with your name, school, and interests.
                     </p>
                   </div>
                 </div>
