@@ -63,8 +63,21 @@ export async function GET(req: Request) {
 
     const opportunitiesList = Array.isArray(opportunitiesRaw) ? opportunitiesRaw : [];
 
+    // exclude opportunities whose application_deadline is in the past
+    const now = new Date();
+    const opportunitiesListFiltered = opportunitiesList.filter((o: any) => {
+      if (!o?.application_deadline) return true; // keep if no deadline
+      const d = new Date(o.application_deadline);
+      return d >= now;
+    });
+
+    // use the filtered list going forward
+    const effectiveOpportunities = opportunitiesListFiltered;
+
     // Collect unique organization ids referenced by the opportunities
-    const orgIds = Array.from(new Set(opportunitiesList.map((o: any) => o.organization_id).filter(Boolean)));
+    const orgIds = Array.from(
+      new Set(effectiveOpportunities.map((o: any) => o.organization_id).filter(Boolean))
+    );
 
     // Fetch organization names in one query
     let orgs: any[] = [];
@@ -84,7 +97,7 @@ export async function GET(req: Request) {
     const orgMap = new Map<string, string | null>(orgs.map((r: any) => [r.id, r.org_name ?? null]));
 
     // Attach org_name to each opportunity
-    const opportunities = opportunitiesList.map((o: any) => ({
+    const opportunities = effectiveOpportunities.map((o: any) => ({
       ...o,
       org_name: o.organization_id ? orgMap.get(o.organization_id) ?? null : null,
     }));
