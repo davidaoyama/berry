@@ -81,6 +81,7 @@ export default function AuthPage() {
 
       if (signInError) {
         // If error is about user not found, show helpful message
+        // comment
         if (signInError.message.includes('not found') || signInError.message.includes('User not found') || signInError.message.includes('Signups not allowed')) {
           setError("No account found with this email. Please sign up first.")
         } else {
