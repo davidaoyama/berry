@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { FaStar } from "react-icons/fa";
 
 type Opportunity = {
   id: string;
@@ -32,6 +33,7 @@ export default function StudentExplorePage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(12);
   const [hasMore, setHasMore] = useState(true);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   // search + categories
   const [search, setSearch] = useState("");
@@ -192,6 +194,18 @@ export default function StudentExplorePage() {
     setSelected(null);
   };
 
+  const toggleFavorite = (id: string) => {
+    setFavorites((prev) => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(id)) {
+        newFavorites.delete(id);
+      } else {
+        newFavorites.add(id);
+      }
+      return newFavorites;
+    });
+  };
+
   // handle Escape and body scroll
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -312,6 +326,17 @@ export default function StudentExplorePage() {
                       className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700"
                     >
                       View
+                    </button>
+                    <button
+                      onClick={() => toggleFavorite(o.id)}
+                      className="mt-4 inline-flex items-center text-yellow-500"
+                      aria-label="Toggle Favorite"
+                    >
+                      <FaStar
+                        className={`text-xl ${
+                          favorites.has(o.id) ? "fill-current" : "stroke-current"
+                        }`}
+                      />
                     </button>
                   </div>
                 </div>

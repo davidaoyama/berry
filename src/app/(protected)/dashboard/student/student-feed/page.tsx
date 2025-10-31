@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react"
+import { FaStar } from "react-icons/fa"; // Add this import for the star icon
 
 type Opportunity = {
   id: string
@@ -33,6 +34,7 @@ export default function StudentFeedPage() {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(12)
   const [hasMore, setHasMore] = useState(true)
+  const [favorites, setFavorites] = useState<Set<string>>(new Set()); // Track favorited opportunities
 
   // modal state + detail fetch
   const [selected, setSelected] = useState<Opportunity | null>(null)
@@ -154,6 +156,18 @@ export default function StudentFeedPage() {
     }
   }, [selected])
 
+  const toggleFavorite = (id: string) => {
+    setFavorites((prev) => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(id)) {
+        newFavorites.delete(id);
+      } else {
+        newFavorites.add(id);
+      }
+      return newFavorites;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -202,6 +216,17 @@ export default function StudentFeedPage() {
                       className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700"
                     >
                       View
+                    </button>
+                    <button
+                      onClick={() => toggleFavorite(o.id)}
+                      className="mt-4 inline-flex items-center text-yellow-500"
+                      aria-label="Toggle Favorite"
+                    >
+                      <FaStar
+                        className={`text-xl ${
+                          favorites.has(o.id) ? "fill-current" : "stroke-current"
+                        }`}
+                      />
                     </button>
                   </div>
                 </div>
