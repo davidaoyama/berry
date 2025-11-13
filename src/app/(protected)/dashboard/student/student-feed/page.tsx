@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { FaStar } from "react-icons/fa"; // Add this import for the star icon
+import useFavorites from "../../../../../lib/useFavorites"
 
 type Opportunity = {
   id: string
@@ -34,7 +35,9 @@ export default function StudentFeedPage() {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(12)
   const [hasMore, setHasMore] = useState(true)
-  const [favorites, setFavorites] = useState<Set<string>>(new Set()); // Track favorited opportunities
+  const { favorites, toggleFavorite, isFavorite } = useFavorites()
+  const [favoritesFirst, setFavoritesFirst] = useState(false)
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
 
   // modal state + detail fetch
   const [selected, setSelected] = useState<Opportunity | null>(null)
@@ -156,24 +159,45 @@ export default function StudentFeedPage() {
     }
   }, [selected])
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(id)) {
-        newFavorites.delete(id);
-      } else {
-        newFavorites.add(id);
-      }
-      return newFavorites;
-    });
-  };
+  let displayedItems = items
+  if (onlyFavorites) {
+    displayedItems = items.filter((it) => favorites.has(it.id))
+  } else if (favoritesFirst) {
+    displayedItems = [...items].sort((a, b) => (favorites.has(b.id) ? 1 : 0) - (favorites.has(a.id) ? 1 : 0))
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">Recommended Opportunities</h2>
-          <div className="text-sm text-gray-500">{loading ? 'Loading...' : `${items.length} shown`}</div>
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-gray-500">{loading ? 'Loading...' : `${displayedItems.length} shown`}</div>
+            <div className="inline-flex items-center px-2 py-1 bg-yellow-50 text-yellow-700 rounded text-sm">
+              ⭐ {favorites.size}
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-4 flex items-center gap-4">
+          <label className="inline-flex items-center text-sm text-gray-600">
+            <input
+              type="checkbox"
+              checked={favoritesFirst}
+              onChange={(e) => setFavoritesFirst(e.target.checked)}
+              className="mr-2"
+            />
+            Favorites first
+          </label>
+          <label className="inline-flex items-center text-sm text-gray-600">
+            <input
+              type="checkbox"
+              checked={onlyFavorites}
+              onChange={(e) => setOnlyFavorites(e.target.checked)}
+              className="mr-2"
+            />
+            Only favorites
+          </label>
         </div>
 
         {error && (
@@ -182,11 +206,13 @@ export default function StudentFeedPage() {
 
         {loading && !items.length ? (
           <div className="py-8 text-center">Loading feed…</div>
+        ) : onlyFavorites && displayedItems.length === 0 ? (
+          <div className="py-8 text-center text-gray-600 bg-white/50 p-6 rounded">You haven't favorited anything yet — star an opportunity to save it.</div>
         ) : items.length === 0 ? (
           <div className="py-8 text-center text-gray-600 bg-white/50 p-6 rounded">No opportunities match your preferences yet.</div>
         ) : (
           <div className="space-y-4">
-            {items.map((o) => (
+            {displayedItems.map((o) => (
               <article
                 key={o.id}
                 className="w-full bg-white p-6 rounded-lg shadow-sm border border-gray-100"
@@ -224,7 +250,7 @@ export default function StudentFeedPage() {
                     >
                       <FaStar
                         className={`text-xl ${
-                          favorites.has(o.id) ? "fill-current" : "stroke-current"
+                          favorites.has(o.id) ? "fill-current text-yellow-500" : "stroke-current text-gray-400"
                         }`}
                       />
                     </button>
