@@ -28,8 +28,8 @@ export default function Navbar() {
 
   const getActiveClass = (path: string) => {
     return isActive(path)
-      ? "bg-indigo-700 text-white"
-      : "text-indigo-100 hover:bg-indigo-600 hover:text-white"
+      ? "bg-[#f77fbe] text-white"
+      : "text-indigo-100 hover:bg-[#f77fbe] hover:text-white"
   }
 
   // Extract user information from Supabase user object
@@ -43,13 +43,13 @@ export default function Navbar() {
   const userRole = user?.user_metadata?.role
 
   return (
-    <nav className="bg-indigo-600 shadow-lg">
+    <nav className="bg-[#004aad] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-white">Berry</span>
+              <span className="text-2xl font-bold text-white font-[Atelia]">Berry</span>
             </Link>
           </div>
 
@@ -60,31 +60,31 @@ export default function Navbar() {
               <>
                 <Link
                   href="/"
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getActiveClass("/")}`}
+                  className={`px-3 py-2 rounded-md text-sm text-white hover:bg-white hover:text-[#f77fbe] font-[Marble] transition-colors ${getActiveClass("/")}`}
                 >
                   Home
                 </Link>
                 <Link
                   href="/auth?mode=signin"
-                  className="bg-white text-indigo-600 hover:bg-gray-100 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-[#f77fbe] text-white hover:bg-white hover:text-[#f77fbe] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth?mode=signup"
-                  className="bg-indigo-700 text-white hover:bg-indigo-800 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-[#f77fbe] text-white hover:bg-white hover:text-[#f77fbe] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
                 >
                   Sign Up
                 </Link>
                 <Link
                   href="/org"
-                  className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-[#52b2bf] hover:bg-white hover:text-[#52b2bf] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
                 >
                   Org Registration
                 </Link>
                 <Link
                   href="/dashboard/admin"
-                  className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-[#52b2bf] hover:bg-white hover:text-[#52b2bf] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
                 >
                   Admin
                 </Link>
@@ -96,14 +96,14 @@ export default function Navbar() {
               <>
                 <Link
                   href="/"
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getActiveClass("/")}`}
+                  className={`px-3 py-2 rounded-md text-white hover:bg-white hover:text-[#f77fbe] text-sm font-[Marble] transition-colors ${getActiveClass("/")}`}
                 >
                   Home
                 </Link>
                 
                 {/* Dashboard Links */}
                 <div className="relative group">
-                  <button className="px-3 py-2 rounded-md text-sm font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors">
+                  <button className="px-3 py-2 rounded-md text-sm font-[Marble] text-indigo-100 hover:bg-[#f77fbe] hover:text-white transition-colors">
                     Dashboards
                     <svg className="ml-1 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -113,25 +113,25 @@ export default function Navbar() {
                     <div className="py-1">
                       <Link
                         href="/dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm font-[Marble] text-gray-700 hover:bg-gray-100"
                       >
                         Main Dashboard
                       </Link>
                       <Link
                         href="/dashboard/student"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm font-[Marble] text-gray-700 hover:bg-gray-100"
                       >
                         Student Dashboard
                       </Link>
                       <Link
                         href="/dashboard/org"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm font-[Marble] text-gray-700 hover:bg-gray-100"
                       >
                         Organization Dashboard
                       </Link>
                       <Link
                         href="/dashboard/admin"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm font-[Marble] text-gray-700 hover:bg-gray-100"
                       >
                         Admin Dashboard
                       </Link>
@@ -143,7 +143,7 @@ export default function Navbar() {
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-feed"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getActiveClass("/dashboard/student/student-feed")}`}
+                    className={`px-3 py-2 rounded-md text-sm font-[Marble] transition-colors ${getActiveClass("/dashboard/student/student-feed")}`}
                   >
                     My Feed
                   </Link>
@@ -153,7 +153,7 @@ export default function Navbar() {
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-explore"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getActiveClass("/dashboard/student/explore")}`}
+                    className={`px-3 py-2 rounded-md text-sm font-[Marble] transition-colors ${getActiveClass("/dashboard/student/explore")}`}
                   >
                     Explore
                   </Link>
@@ -162,7 +162,7 @@ export default function Navbar() {
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-profile"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getActiveClass("/dashboard/student/profile")}`}
+                    className={`px-3 py-2 rounded-md text-sm font-[Marble] transition-colors ${getActiveClass("/dashboard/student/profile")}`}
                   >
                     Profile
                   </Link>
@@ -171,12 +171,12 @@ export default function Navbar() {
 
                 {/* User Menu */}
                 <div className="flex items-center space-x-3">
-                  <span className="text-indigo-100 text-sm">
+                  <span className="text-indigo-100 text-sm font-[Marble]">
                     Welcome, {name || 'User'}
                   </span>
                   <button
                     onClick={handleSignOut}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                    className="bg-[#52b2bf] hover:bg-white hover:text-[#52b2bf] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
                   >
                     Sign Out
                   </button>
