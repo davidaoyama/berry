@@ -19,6 +19,22 @@
   }
 }
 
+@keyframes berry-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.berry-float {
+  animation: berry-float 4s ease-in-out infinite;
+}
+
 @font-face {
   font-family: "Atelia";
   src: url("/fonts/Atelia.woff2") format("woff2"),
