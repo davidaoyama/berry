@@ -108,7 +108,6 @@ export default function EditOpportunityPage() {
         throw new Error('Opportunity not found or you do not have permission to edit it')
       }
 
-      // Populate form with existing data
       setFormData({
         opportunityName: data.opportunity_name || '',
         category: data.category || '',
@@ -171,7 +170,6 @@ export default function EditOpportunityPage() {
         throw new Error('You must be signed in to edit opportunities')
       }
 
-      // Update using Supabase client directly
       const { error: updateError } = await supabase
         .from('opportunities')
         .update({
@@ -203,7 +201,6 @@ export default function EditOpportunityPage() {
         throw new Error(updateError.message)
       }
 
-      // Redirect back to my opportunities
       router.push('/dashboard/org/my-opportunities')
     } catch (err) {
       console.error('Error updating opportunity:', err)
@@ -216,7 +213,7 @@ export default function EditOpportunityPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: 'var(--berry-blue)' }} />
       </div>
     )
   }
@@ -229,7 +226,8 @@ export default function EditOpportunityPage() {
           <p className="text-red-700 mb-4">{error}</p>
           <button
             onClick={() => router.push('/dashboard/org/my-opportunities')}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            className="button"
+            style={{ background: '#ef4444' }}
           >
             Back to My Opportunities
           </button>
@@ -239,13 +237,31 @@ export default function EditOpportunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div
+      className="min-h-screen py-10 px-4 sm:px-6 lg:px-8"
+      style={{ background: '#f3f4ff' }}
+    >
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Opportunity</h1>
-          <p className="mt-2 text-gray-600">
-            Update the details for your opportunity
-          </p>
+        {/* Header */}
+        <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-gray-400 mb-1">
+              Opportunities
+            </p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Edit Opportunity
+            </h1>
+            <p className="mt-1 text-sm text-gray-600">
+              Update the details for this opportunity. Changes will be visible to students right away.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/org/my-opportunities')}
+            className="button ghost"
+          >
+            Back to List
+          </button>
         </div>
 
         {error && (
@@ -254,8 +270,8 @@ export default function EditOpportunityPage() {
           </div>
         )}
 
+        {/* Form (same fields as before) */}
         <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8 space-y-8">
-          {/* All the same fields as post-opportunity page */}
           <div>
             <label htmlFor="opportunityName" className="block text-sm font-medium text-gray-700 mb-2">
               Opportunity Name <span className="text-red-500">*</span>

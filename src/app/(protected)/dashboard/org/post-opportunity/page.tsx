@@ -90,7 +90,6 @@ export default function PostOpportunityPage() {
   const [error, setError] = useState<string | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 
-  // Form state
   const [formData, setFormData] = useState({
     opportunityName: '',
     category: '',
@@ -113,7 +112,9 @@ export default function PostOpportunityPage() {
     contactInfo: ''
   })
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target
 
     if (type === 'checkbox') {
@@ -139,7 +140,6 @@ export default function PostOpportunityPage() {
     setIsSubmitting(true)
 
     try {
-      // Get current session from Supabase
       const { data: { session } } = await supabase.auth.getSession()
 
       if (!session) {
@@ -161,7 +161,6 @@ export default function PostOpportunityPage() {
         throw new Error(data.message || 'Failed to submit opportunity')
       }
 
-      // Show success modal
       setShowSuccessModal(true)
     } catch (err) {
       console.error('Error submitting opportunity:', err)
@@ -173,194 +172,242 @@ export default function PostOpportunityPage() {
 
   const handleSuccessClose = () => {
     setShowSuccessModal(false)
-    router.push('/dashboard/org') // Redirect to org dashboard
+    router.push('/dashboard/org')
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+    <div
+      className="min-h-screen"
+      style={{
+        background:
+          'radial-gradient(circle at top, rgba(82,178,191,0.12), transparent 55%), radial-gradient(circle at bottom, rgba(247,127,190,0.12), transparent 55%), var(--background)'
+      }}
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        {/* Top heading */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Post a New Opportunity</h1>
-          <p className="mt-2 text-gray-600">
-            Answer the following for the opportunity you would like to post.
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+            Organization • Post Opportunity
+          </p>
+          <h1 className="mt-2 text-3xl sm:text-4xl font-semibold text-gray-900">
+            Post a new <span style={{ color: 'var(--berry-blue)' }}>opportunity</span>
+          </h1>
+          <p className="mt-3 text-sm sm:text-base text-gray-600 max-w-2xl">
+            Share an enrichment opportunity with LAUSD students. Clear details help the right students
+            discover and apply.
           </p>
         </div>
 
-        {/* Error Message */}
+        {/* Error banner */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            </div>
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-800 flex gap-3">
+            <span className="mt-0.5">
+              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </span>
+            <span>{error}</span>
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8 space-y-8">
-          {/* Opportunity Name */}
-          <div>
-            <label htmlFor="opportunityName" className="block text-sm font-medium text-gray-700 mb-2">
-              Opportunity Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="opportunityName"
-              name="opportunityName"
-              required
-              value={formData.opportunityName}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="e.g., Summer Research Internship"
-            />
-          </div>
-
-          {/* Category */}
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-              Category <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="category"
-              name="category"
-              required
-              value={formData.category}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="">Select a category</option>
-              {CATEGORIES.map(cat => (
-                <option key={cat.value} value={cat.value}>{cat.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Type of Enrichment Opportunity */}
-          <div>
-            <label htmlFor="opportunityType" className="block text-sm font-medium text-gray-700 mb-2">
-              Type of Enrichment Opportunity <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="opportunityType"
-              name="opportunityType"
-              required
-              value={formData.opportunityType}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="">Select opportunity type</option>
-              {OPPORTUNITY_TYPES.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Duration */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-                Start Date
-              </label>
-              <input
-                type="date"
-                id="startDate"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
+        {/* Form card */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white/90 backdrop-blur-sm border border-slate-100 shadow-sm rounded-2xl px-4 py-6 sm:px-8 sm:py-8 space-y-8"
+        >
+          {/* Section: Basics */}
+          <section className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
+              <h2 className="text-lg font-semibold text-gray-900">Basics</h2>
+              <p className="text-xs text-gray-500">
+                Required details students see first.
+              </p>
             </div>
-            <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-                End Date
-              </label>
-              <input
-                type="date"
-                id="endDate"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-          </div>
 
-          {/* Location Type */}
-          <div>
-            <label htmlFor="locationType" className="block text-sm font-medium text-gray-700 mb-2">
-              Location Type <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="locationType"
-              name="locationType"
-              required
-              value={formData.locationType}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="">Select location type</option>
-              {LOCATION_TYPES.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Conditional Location Fields */}
-          {(formData.locationType === 'in_person' || formData.locationType === 'hybrid') && (
-            <>
+            <div className="space-y-6">
+              {/* Name */}
               <div>
-                <label htmlFor="locationAddress" className="block text-sm font-medium text-gray-700 mb-2">
-                  Physical Address <span className="text-red-500">*</span>
+                <label htmlFor="opportunityName" className="block text-sm font-medium text-gray-800 mb-1.5">
+                  Opportunity Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  id="locationAddress"
-                  name="locationAddress"
-                  required={formData.locationType === 'in_person' || formData.locationType === 'hybrid'}
-                  value={formData.locationAddress}
+                  id="opportunityName"
+                  name="opportunityName"
+                  required
+                  value={formData.opportunityName}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="e.g., 123 Main St, Los Angeles, CA 90001"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  placeholder="e.g., Summer Research Internship"
                 />
               </div>
+
+              {/* Category + Type */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-800 mb-1.5">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    required
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  >
+                    <option value="">Select a category</option>
+                    {CATEGORIES.map(cat => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="opportunityType" className="block text-sm font-medium text-gray-800 mb-1.5">
+                    Type of Enrichment Opportunity <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="opportunityType"
+                    name="opportunityType"
+                    required
+                    value={formData.opportunityType}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  >
+                    <option value="">Select opportunity type</option>
+                    {OPPORTUNITY_TYPES.map(type => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-800 mb-1.5">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-800 mb-1.5">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    id="endDate"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section: Location */}
+          <section className="space-y-4 border-t border-slate-100 pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
+              <h2 className="text-lg font-semibold text-gray-900">Location</h2>
+              <p className="text-xs text-gray-500">Tell students where and how they’ll participate.</p>
+            </div>
+
+            <div className="space-y-6">
               <div>
-                <label htmlFor="locationState" className="block text-sm font-medium text-gray-700 mb-2">
-                  State
+                <label htmlFor="locationType" className="block text-sm font-medium text-gray-800 mb-1.5">
+                  Location Type <span className="text-red-500">*</span>
                 </label>
                 <select
-                  id="locationState"
-                  name="locationState"
-                  value={formData.locationState}
+                  id="locationType"
+                  name="locationType"
+                  required
+                  value={formData.locationType}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
                 >
-                  <option value="">Select a state (optional)</option>
-                  {US_STATES.map(state => (
-                    <option key={state.code} value={state.code}>{state.name}</option>
+                  <option value="">Select location type</option>
+                  {LOCATION_TYPES.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
                   ))}
                 </select>
               </div>
-            </>
-          )}
 
-          {/* Requirements Section */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Requirements (Optional)</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              These fields help students filter opportunities that match their qualifications. Leave blank if not applicable.
-            </p>
+              {(formData.locationType === 'in_person' || formData.locationType === 'hybrid') && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2">
+                    <label htmlFor="locationAddress" className="block text-sm font-medium text-gray-800 mb-1.5">
+                      Physical Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="locationAddress"
+                      name="locationAddress"
+                      required
+                      value={formData.locationAddress}
+                      onChange={handleInputChange}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                      placeholder="e.g., 123 Main St, Los Angeles, CA 90001"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="locationState" className="block text-sm font-medium text-gray-800 mb-1.5">
+                      State
+                    </label>
+                    <select
+                      id="locationState"
+                      name="locationState"
+                      value={formData.locationState}
+                      onChange={handleInputChange}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                    >
+                      <option value="">Select a state (optional)</option>
+                      {US_STATES.map(state => (
+                        <option key={state.code} value={state.code}>
+                          {state.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Section: Requirements */}
+          <section className="space-y-4 border-t border-slate-100 pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Requirements</h2>
+                <p className="text-xs text-gray-500">
+                  Optional filters that help students see if they’re a good match.
+                </p>
+              </div>
+            </div>
 
             <div className="space-y-6">
               {/* GPA */}
-              <div>
-                <label htmlFor="minGpa" className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="max-w-xs">
+                <label htmlFor="minGpa" className="block text-sm font-medium text-gray-800 mb-1.5">
                   Minimum GPA
                 </label>
                 <input
@@ -372,15 +419,15 @@ export default function PostOpportunityPage() {
                   max="5"
                   value={formData.minGpa}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
                   placeholder="e.g., 3.5"
                 />
               </div>
 
-              {/* Age Range */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Age range */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-xl">
                 <div>
-                  <label htmlFor="minAge" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="minAge" className="block text-sm font-medium text-gray-800 mb-1.5">
                     Minimum Age
                   </label>
                   <input
@@ -391,12 +438,12 @@ export default function PostOpportunityPage() {
                     max="100"
                     value={formData.minAge}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
                     placeholder="e.g., 16"
                   />
                 </div>
                 <div>
-                  <label htmlFor="maxAge" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="maxAge" className="block text-sm font-medium text-gray-800 mb-1.5">
                     Maximum Age
                   </label>
                   <input
@@ -407,28 +454,28 @@ export default function PostOpportunityPage() {
                     max="100"
                     value={formData.maxAge}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
                     placeholder="e.g., 18"
                   />
                 </div>
               </div>
 
-              {/* Grade Levels */}
+              {/* Grade levels */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-800 mb-1.5">
                   Grade Levels
                 </label>
-                <p className="text-xs text-gray-500 mb-3">Select all that apply</p>
-                <div className="grid grid-cols-7 sm:grid-cols-13 gap-2">
+                <p className="text-[11px] text-gray-500 mb-2">Select all that apply.</p>
+                <div className="grid grid-cols-7 sm:grid-cols-13 gap-2 max-w-lg">
                   {GRADE_LEVELS.map(grade => (
                     <button
                       key={grade}
                       type="button"
                       onClick={() => handleGradeLevelToggle(grade)}
-                      className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                         formData.gradeLevels.includes(grade)
-                          ? 'bg-green-600 text-white border-green-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                          ? 'bg-[var(--berry-blue)] text-white border-[var(--berry-blue)]'
+                          : 'bg-white text-gray-700 border-slate-300 hover:bg-slate-50'
                       }`}
                     >
                       {grade}
@@ -437,9 +484,9 @@ export default function PostOpportunityPage() {
                 </div>
               </div>
 
-              {/* Other Requirements */}
+              {/* Other requirements */}
               <div>
-                <label htmlFor="requirementsOther" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="requirementsOther" className="block text-sm font-medium text-gray-800 mb-1.5">
                   Other Requirements
                 </label>
                 <textarea
@@ -448,128 +495,135 @@ export default function PostOpportunityPage() {
                   rows={3}
                   value={formData.requirementsOther}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="e.g., Must be a California resident, specific skills required, etc."
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  placeholder="e.g., California resident, specific skills, recommendations, etc."
                 />
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Cost */}
-          <div>
-            <label htmlFor="cost" className="block text-sm font-medium text-gray-700 mb-2">
-              Cost (USD) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="cost"
-              name="cost"
-              required
-              min="0"
-              step="0.01"
-              value={formData.cost}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="0 for free opportunities"
-            />
-            <div className="mt-2">
-              <label className="inline-flex items-center">
+          {/* Section: Cost & deadline */}
+          <section className="space-y-6 border-t border-slate-100 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="cost" className="block text-sm font-medium text-gray-800 mb-1.5">
+                  Cost (USD) <span className="text-red-500">*</span>
+                </label>
                 <input
-                  type="checkbox"
-                  name="hasStipend"
-                  checked={formData.hasStipend}
+                  type="number"
+                  id="cost"
+                  name="cost"
+                  required
+                  min="0"
+                  step="0.01"
+                  value={formData.cost}
                   onChange={handleInputChange}
-                  className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  placeholder="0 for free opportunities"
                 />
-                <span className="ml-2 text-sm text-gray-700">This opportunity provides a stipend</span>
-              </label>
+                <label className="mt-2 inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    name="hasStipend"
+                    checked={formData.hasStipend}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 rounded border-slate-300 text-[var(--berry-blue)] focus:ring-[var(--berry-cyan)]"
+                  />
+                  This opportunity provides a stipend
+                </label>
+              </div>
+
+              <div>
+                <label htmlFor="applicationDeadline" className="block text-sm font-medium text-gray-800 mb-1.5">
+                  Application Deadline <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="applicationDeadline"
+                  name="applicationDeadline"
+                  required
+                  value={formData.applicationDeadline}
+                  onChange={handleInputChange}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                />
+              </div>
             </div>
-          </div>
+          </section>
 
-          {/* Application Deadline */}
-          <div>
-            <label htmlFor="applicationDeadline" className="block text-sm font-medium text-gray-700 mb-2">
-              Application Deadline <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              id="applicationDeadline"
-              name="applicationDeadline"
-              required
-              value={formData.applicationDeadline}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
+          {/* Section: Description & links */}
+          <section className="space-y-6 border-t border-slate-100 pt-6">
+            <div>
+              <label htmlFor="briefDescription" className="block text-sm font-medium text-gray-800 mb-1.5">
+                Brief Description <span className="text-red-500">*</span>
+              </label>
+              <p className="text-[11px] text-gray-500 mb-2">
+                This is what students will read when browsing — keep it concrete and student-friendly.
+              </p>
+              <textarea
+                id="briefDescription"
+                name="briefDescription"
+                required
+                rows={5}
+                value={formData.briefDescription}
+                onChange={handleInputChange}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                placeholder="Describe what students will do, learn, and why this opportunity matters..."
+              />
+            </div>
 
-          {/* Brief Description */}
-          <div>
-            <label htmlFor="briefDescription" className="block text-sm font-medium text-gray-700 mb-2">
-              Brief Description <span className="text-red-500">*</span>
-            </label>
-            <p className="text-xs text-gray-500 mb-2">This will be displayed to students when browsing opportunities</p>
-            <textarea
-              id="briefDescription"
-              name="briefDescription"
-              required
-              rows={5}
-              value={formData.briefDescription}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="Describe the opportunity, what students will learn, and what makes it unique..."
-            />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="applicationUrl" className="block text-sm font-medium text-gray-800 mb-1.5">
+                  Formal Application Link or Website URL <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="url"
+                  id="applicationUrl"
+                  name="applicationUrl"
+                  required
+                  value={formData.applicationUrl}
+                  onChange={handleInputChange}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  placeholder="https://example.org/apply"
+                />
+              </div>
 
-          {/* Application URL */}
-          <div>
-            <label htmlFor="applicationUrl" className="block text-sm font-medium text-gray-700 mb-2">
-              Formal Application Link or Website URL <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="url"
-              id="applicationUrl"
-              name="applicationUrl"
-              required
-              value={formData.applicationUrl}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="https://example.com/apply"
-            />
-          </div>
+              <div>
+                <label htmlFor="contactInfo" className="block text-sm font-medium text-gray-800 mb-1.5">
+                  Contact Information <span className="text-red-500">*</span>
+                </label>
+                <p className="text-[11px] text-gray-500 mb-2">
+                  Where students or families can send questions.
+                </p>
+                <input
+                  type="text"
+                  id="contactInfo"
+                  name="contactInfo"
+                  required
+                  value={formData.contactInfo}
+                  onChange={handleInputChange}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--berry-cyan)] focus:border-transparent"
+                  placeholder="e.g., contact@organization.org or (555) 123-4567"
+                />
+              </div>
+            </div>
+          </section>
 
-          {/* Contact Info */}
-          <div>
-            <label htmlFor="contactInfo" className="block text-sm font-medium text-gray-700 mb-2">
-              Contact Information <span className="text-red-500">*</span>
-            </label>
-            <p className="text-xs text-gray-500 mb-2">Where students can direct questions</p>
-            <input
-              type="text"
-              id="contactInfo"
-              name="contactInfo"
-              required
-              value={formData.contactInfo}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="e.g., contact@organization.org or (555) 123-4567"
-            />
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex gap-4 pt-6 border-t">
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-100">
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              className="button ghost w-full sm:w-auto justify-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="button w-full sm:w-auto justify-center disabled:bg-slate-400 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Opportunity'}
+              {isSubmitting ? 'Submitting…' : 'Submit Opportunity'}
             </button>
           </div>
         </form>
@@ -577,21 +631,23 @@ export default function PostOpportunityPage() {
 
       {/* Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
                 <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Submission Received!</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                Submission received!
+              </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Your opportunity is now live on our app. Students can discover and apply to your opportunity right away.
+                Your opportunity is now available for students to discover and apply.
               </p>
               <button
                 onClick={handleSuccessClose}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                className="button w-full justify-center"
               >
                 Back to Dashboard
               </button>

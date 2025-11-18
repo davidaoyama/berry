@@ -97,12 +97,6 @@ export default function OrgDashboard() {
               <span className="text-sm text-gray-700">
                 Welcome, {user.user_metadata?.first_name || user.email}
               </span>
-              <button
-                onClick={handleSignOut}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Sign Out
-              </button>
             </div>
           </div>
         </div>
