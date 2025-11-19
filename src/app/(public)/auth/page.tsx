@@ -222,49 +222,49 @@ export default function AuthPage() {
   
   // Render based on mode (signup or signin)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#707070] from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       {/* Email sent confirmation screen */}
       {emailSent ? (
-        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+        <div className="max-w-md w-full bg-[#52b2bf] p-8 rounded-lg shadow-md">
           <div className="text-center mb-6">
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-blue-100">
               <svg className="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mt-2">Check Your Email</h2>
+            <h2 className="text-2xl font-[Marble] text-white mt-2">Check Your Email</h2>
           </div>
-          <p className="mb-4 text-gray-600 text-center">
+          <p className="mb-4 font-[Marble] text-white text-center">
             We've sent a magic link to <strong>{email}</strong>
           </p>
-          <p className="text-gray-600 mb-8 text-center">
+          <p className="text-white font-[Marble] mb-8 text-center">
             Click the link to {mode === "signup" ? "complete your registration" : "sign in"}. 
             The link will expire in 1 hour.
           </p>
           <div className="space-y-3">
             <button
               onClick={() => setEmailSent(false)}
-              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-[Marble] text-blue-700 bg-white hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Use a different email
             </button>
-            <Link href="/" className="block text-center w-full py-2 text-sm text-gray-600 hover:text-gray-900">
+            <Link href="/" className="block text-center w-full py-2 text-sm text-white hover:text-blue-600">
               Return to home page
             </Link>
           </div>
         </div>
       ) : (
-        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+        <div className="max-w-md w-full bg-[#52b2bf] p-8 rounded-lg shadow-md">
           <div className="text-center mb-6">
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-blue-100">
               <svg className="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mt-2">
+            <h2 className="text-2xl font-[Marble] font-bold text-white mt-2">
               {mode === "signup" ? "Create an Account" : "Welcome Back"}
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm font-[Marble] font-semibold text-white">
               {mode === "signup" ? "Sign up to access Berry" : "Sign in to your account"}
             </p>
           </div>
@@ -279,7 +279,7 @@ export default function AuthPage() {
             {/* Role selector (before email for signup) */}
             {mode === "signup" && (
               <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="role" className="block text-sm font-[Marble] text-white">
                   I am a
                 </label>
                 <select
@@ -303,7 +303,7 @@ export default function AuthPage() {
             {/* Sign-in mode also needs a role selector, but more subtle */}
             {mode === "signin" && (
               <div>
-                <label htmlFor="signin-role" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="signin-role" className="block text-sm font-[Marble] text-white">
                   I am signing in as a
                 </label>
                 <select
@@ -324,9 +324,9 @@ export default function AuthPage() {
             
             {/* Email field */}
             <div>
-              <label htmlFor="email" className="flex justify-between items-center text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="flex justify-between items-center text-sm font-[Marble] text-white">
                 <span>Email {role === "student" && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-white font-[Marble]">
                     (Must be {ALLOWED_DOMAINS.join(" or ")})
                   </span>
                 )}</span>
@@ -414,7 +414,7 @@ export default function AuthPage() {
               <div className="text-center">
                 <button
                   onClick={handleResendVerification}
-                  className="text-sm text-blue-600 hover:text-blue-500"
+                  className="text-sm text-white hover:text-blue-500"
                 >
                   Resend verification email
                 </button>
@@ -430,14 +430,14 @@ export default function AuthPage() {
             <div className="text-center">
               <Link
                 href={`/auth?mode=${mode === "signup" ? "signin" : "signup"}`}
-                className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                className="text-sm text-white hover:text-blue-500 font-medium"
               >
                 {mode === "signup" ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
               </Link>
             </div>
 
             <div className="text-center">
-              <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link href="/" className="text-sm text-white hover:text-blue-500">
                 ← Back to home
               </Link>
             </div>

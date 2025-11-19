@@ -28,7 +28,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-6xl font-[Marble] text-black mb-6">
-            Welcome to <span className="text-[#52b2bf]">Berry</span>
+            Welcome to <span className="text-[#f77fbe]">Berry</span>
           </h1>
           <p className="text-xl font-[Marble] text-black mb-8 max-w-2xl mx-auto">
             A secure platform for students and organizations. Sign in with your authorized email to get started.

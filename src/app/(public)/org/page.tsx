@@ -233,9 +233,9 @@ export default function OrganizationRegistration() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#707070] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white shadow-lg rounded-lg p-8">
+        <div className="bg-[#f77fbe] shadow-lg rounded-lg p-8">
           {/* Header */}
           <div className="mb-8">
             <Link href="/" className="text-indigo-600 hover:text-indigo-500 flex items-center mb-4">

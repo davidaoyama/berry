@@ -43,7 +43,7 @@ export default function Navbar() {
   const userRole = user?.user_metadata?.role
 
   return (
-    <nav className="bg-[#004aad] shadow-lg">
+    <nav className="bg-[#52b2bf] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and Brand */}
