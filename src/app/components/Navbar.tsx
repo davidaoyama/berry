@@ -5,6 +5,7 @@ import { supabase } from "@/app/lib/supabaseClient"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
+import Image from "next/image"
 
 export default function Navbar() {
   const { user, loading } = useAuth()
@@ -18,120 +19,130 @@ export default function Navbar() {
   }
 
   // Don't show navbar on auth pages and org registration
-  if (pathname === "/auth" || pathname === "/org" || pathname === "/org/login" || pathname.startsWith("/auth/")) {
+  if (
+    pathname === "/auth" ||
+    pathname === "/org" ||
+    pathname === "/org/login" ||
+    pathname.startsWith("/auth/")
+  ) {
     return null
   }
 
-  const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(path)
-  }
+  const isActive = (path: string) =>
+    pathname === path || pathname.startsWith(path)
 
-  const getActiveClass = (path: string) => {
-    return isActive(path)
-      ? "bg-[#f77fbe] text-white"
-      : "text-indigo-100 hover:bg-[#f77fbe] hover:text-white"
-  }
+  const getActiveClass = (path: string) =>
+    isActive(path)
+      ? "bg-[#004aad] text-white"
+      : "text-gray-100 hover:bg-white/10"
 
   // Extract user information from Supabase user object
-  const name = user ? (
-    user.user_metadata?.full_name ||
-    [user.user_metadata?.first_name, user.user_metadata?.last_name].filter(Boolean).join(" ") ||
-    user.email?.split("@")[0]
-  ) : null
+  const name = user
+    ? user.user_metadata?.full_name ||
+      [user.user_metadata?.first_name, user.user_metadata?.last_name]
+        .filter(Boolean)
+        .join(" ") ||
+      user.email?.split("@")[0]
+    : null
 
-  // determine role for conditional links
   const userRole = user?.user_metadata?.role
 
   return (
-    <nav className="bg-[#004aad] shadow-lg">
+    <nav className="sticky top-0 z-50 bg-transparent backdrop-blur-md shadow-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Logo and Brand */}
+          {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-white font-[Atelia]">Berry</span>
-            </Link>
+    <span className="font-[Atelia] text-3xl text-[#f77fbe] tracking-wide drop-shadow-md">
+      BERRY
+    </span>
+  </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Public Navigation - When Not Logged In */}
+            {/* Public Navigation - Not logged in */}
             {!loading && !user && (
               <>
-                <Link
-                  href="/"
-                  className={`px-3 py-2 rounded-md text-sm text-white hover:bg-white hover:text-[#f77fbe] font-[Marble] transition-colors ${getActiveClass("/")}`}
-                >
-                  Home
-                </Link>
+                {/* Sign In – white button */}
                 <Link
                   href="/auth?mode=signin"
-                  className="bg-[#f77fbe] text-white hover:bg-white hover:text-[#f77fbe] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
+                  className="px-4 py-2 rounded-full text-sm font-[Marble] bg-white text-[#004aad] border border-[#004aad]/60 hover:bg-blue-50 hover:border-[#004aad] transition-all shadow-sm"
                 >
                   Sign In
                 </Link>
+
+                {/* Sign Up – pink button */}
                 <Link
                   href="/auth?mode=signup"
-                  className="bg-[#f77fbe] text-white hover:bg-white hover:text-[#f77fbe] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
+                  className="px-4 py-2 rounded-full text-sm font-[Marble] bg-[#f77fbe] text-white hover:bg-[#d763a4] transition-all shadow-md shadow-pink-300/40"
                 >
                   Sign Up
                 </Link>
+
+                {/* Org Registration – blue button */}
                 <Link
                   href="/org"
-                  className="bg-[#52b2bf] hover:bg-white hover:text-[#52b2bf] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
+                  className="px-4 py-2 rounded-full text-sm font-[Marble] bg-[#004aad] text-white hover:bg-[#00337a] transition-all shadow-md shadow-blue-900/40"
                 >
                   Org Registration
                 </Link>
+
+                {/* Admin – subtle outline */}
                 <Link
                   href="/dashboard/admin"
-                  className="bg-[#52b2bf] hover:bg-white hover:text-[#52b2bf] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
+                  className="px-4 py-2 rounded-full text-sm font-[Marble] border border-white/40 text-white hover:bg-white/10 transition-colors"
                 >
                   Admin
                 </Link>
               </>
             )}
 
-            {/* Authenticated Navigation - When Logged In */}
+            {/* Authenticated Navigation */}
             {!loading && user && (
               <>
-                <Link
-                  href="/"
-                  className={`px-3 py-2 rounded-md text-white hover:bg-white hover:text-[#f77fbe] text-sm font-[Marble] transition-colors ${getActiveClass("/")}`}
-                >
-                  Home
-                </Link>
-                
-                {/* Dashboard Links */}
+                {/* Dashboard dropdown */}
                 <div className="relative group">
-                  <button className="px-3 py-2 rounded-md text-sm font-[Marble] text-indigo-100 hover:bg-[#f77fbe] hover:text-white transition-colors">
+                  <button className="px-3 py-2 rounded-full text-sm font-[Marble] text-gray-100 hover:bg-white/10 transition-colors flex items-center">
                     Dashboards
-                    <svg className="ml-1 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="ml-1 h-4 w-4 inline"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div className="py-1">
+                  <div className="absolute right-0 mt-2 w-52 bg-[#2b2b2b] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-white/10">
+                    <div className="py-2">
                       <Link
                         href="/dashboard"
-                        className="block px-4 py-2 text-sm font-[Marble] text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm font-[Marble] hover:bg-white/10"
                       >
                         Main Dashboard
                       </Link>
                       <Link
                         href="/dashboard/student"
-                        className="block px-4 py-2 text-sm font-[Marble] text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm font-[Marble] hover:bg-white/10"
                       >
                         Student Dashboard
                       </Link>
                       <Link
                         href="/dashboard/org"
-                        className="block px-4 py-2 text-sm font-[Marble] text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm font-[Marble] hover:bg-white/10"
                       >
                         Organization Dashboard
                       </Link>
                       <Link
                         href="/dashboard/admin"
-                        className="block px-4 py-2 text-sm font-[Marble] text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm font-[Marble] hover:bg-white/10"
                       >
                         Admin Dashboard
                       </Link>
@@ -139,21 +150,24 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Student-only: My Feed (desktop only - add mobile) */}
+                {/* Student-only links */}
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-feed"
-                    className={`px-3 py-2 rounded-md text-sm font-[Marble] transition-colors ${getActiveClass("/dashboard/student/student-feed")}`}
+                    className={`px-3 py-2 rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
+                      "/dashboard/student/student-feed"
+                    )}`}
                   >
                     My Feed
                   </Link>
                 )}
 
-                { /* Student-only: Explore page (desktop only - add mobile) */}
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-explore"
-                    className={`px-3 py-2 rounded-md text-sm font-[Marble] transition-colors ${getActiveClass("/dashboard/student/explore")}`}
+                    className={`px-3 py-2 rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
+                      "/dashboard/student/explore"
+                    )}`}
                   >
                     Explore
                   </Link>
@@ -162,21 +176,22 @@ export default function Navbar() {
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-profile"
-                    className={`px-3 py-2 rounded-md text-sm font-[Marble] transition-colors ${getActiveClass("/dashboard/student/profile")}`}
+                    className={`px-3 py-2 rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
+                      "/dashboard/student/profile"
+                    )}`}
                   >
                     Profile
                   </Link>
                 )}
 
-
                 {/* User Menu */}
                 <div className="flex items-center space-x-3">
-                  <span className="text-indigo-100 text-sm font-[Marble]">
-                    Welcome, {name || 'User'}
+                  <span className="text-gray-100 text-sm font-[Marble]">
+                    {name || "User"}
                   </span>
                   <button
                     onClick={handleSignOut}
-                    className="bg-[#52b2bf] hover:bg-white hover:text-[#52b2bf] px-4 py-2 rounded-md text-sm font-[Marble] transition-colors"
+                    className="px-4 py-2 rounded-full text-sm font-[Marble] border border-white/40 text-white hover:bg-white hover:text-[#004aad] transition-colors"
                   >
                     Sign Out
                   </button>
@@ -196,13 +211,28 @@ export default function Navbar() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-indigo-100 hover:text-white focus:outline-none focus:text-white"
+              className="text-gray-100 hover:text-white focus:outline-none focus:text-white"
             >
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>
@@ -212,94 +242,90 @@ export default function Navbar() {
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-indigo-700">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[#707070]/95 border-t border-white/10">
+              {/* Not logged in */}
               {!loading && !user && (
                 <>
                   <Link
-                    href="/"
-                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${getActiveClass("/")}`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Home
-                  </Link>
-                  <Link
                     href="/auth?mode=signin"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                    className="block px-3 py-2 rounded-full text-base font-[Marble] bg-white text-[#004aad] border border-[#004aad]/60 hover:bg-blue-50 hover:border-[#004aad] transition-all"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/auth?mode=signup"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                    className="block px-3 py-2 rounded-full text-base font-[Marble] bg-[#f77fbe] text-white hover:bg-[#d763a4] transition-all"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign Up
                   </Link>
                   <Link
                     href="/org"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                    className="block px-3 py-2 rounded-full text-base font-[Marble] bg-[#004aad] text-white hover:bg-[#00337a] transition-all"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Org Registration
                   </Link>
                   <Link
                     href="/dashboard/admin"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-red-200 hover:bg-red-600 hover:text-white transition-colors"
+                    className="block px-3 py-2 rounded-full text-base font-[Marble] border border-white/40 text-white hover:bg-white/10 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Admin Dashboard
+                    Admin
                   </Link>
                 </>
               )}
 
+              {/* Logged in */}
               {!loading && user && (
                 <>
                   <Link
-                    href="/"
-                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${getActiveClass("/")}`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Home
-                  </Link>
-                  <Link
                     href="/dashboard"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                    className={`block px-3 py-2 rounded-full text-base font-[Marble] transition-colors ${getActiveClass(
+                      "/dashboard"
+                    )}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Main Dashboard
                   </Link>
                   <Link
                     href="/dashboard/student"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                    className={`block px-3 py-2 rounded-full text-base font-[Marble] transition-colors ${getActiveClass(
+                      "/dashboard/student"
+                    )}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Student Dashboard
                   </Link>
                   <Link
                     href="/dashboard/org"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                    className={`block px-3 py-2 rounded-full text-base font-[Marble] transition-colors ${getActiveClass(
+                      "/dashboard/org"
+                    )}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Organization Dashboard
                   </Link>
                   <Link
                     href="/dashboard/admin"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                    className={`block px-3 py-2 rounded-full text-base font-[Marble] transition-colors ${getActiveClass(
+                      "/dashboard/admin"
+                    )}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Admin Dashboard
                   </Link>
-                  <div className="border-t border-indigo-500 pt-3 mt-3">
-                    <div className="px-3 py-2 text-indigo-100 text-sm">
-                      Welcome, {name || 'User'}
+                  <div className="border-t border-white/15 pt-3 mt-3">
+                    <div className="px-3 py-2 text-gray-100 text-sm font-[Marble]">
+                      {name || "User"}
                     </div>
                     <button
                       onClick={() => {
                         handleSignOut()
                         setIsMenuOpen(false)
                       }}
-                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-200 hover:bg-red-600 hover:text-white transition-colors"
+                      className="block w-full text-left px-3 py-2 rounded-full text-base font-[Marble] border border-white/40 text-white hover:bg-white hover:text-[#004aad] transition-colors mt-1"
                     >
                       Sign Out
                     </button>
@@ -307,10 +333,9 @@ export default function Navbar() {
                 </>
               )}
 
-              {/* Loading state for mobile */}
               {loading && (
                 <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
                 </div>
               )}
             </div>

@@ -93,11 +93,6 @@ export default function OrgDashboard() {
             <div className="flex items-center">
               <h1 className="text-xl font-semibold">Organization Dashboard</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Welcome, {user.user_metadata?.first_name || user.email}
-              </span>
-            </div>
           </div>
         </div>
       </nav>

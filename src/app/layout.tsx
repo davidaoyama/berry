@@ -1,39 +1,33 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+// src/app/layout.tsx
+import type { Metadata } from "next"
+import "./globals.css"
 import Providers from "./components/Providers";
-import Navbar from "./components/Navbar";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import Navbar from "@/app/components/Navbar"
 
 export const metadata: Metadata = {
-  title: "Berry - Student & Organization Platform",
-  description: "A secure platform connecting students and organizations for educational opportunities and community engagement.",
-};
+  title: "Berry",
+  description: "Berry enrichment platform",
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="
+  font-[Marble]
+  antialiased
+  min-h-screen
+  bg-[#707070]
+  bg-[radial-gradient(circle_at_center,_rgba(255,182,222,0.18)_0%,_rgba(112,112,112,1)_75%)]
+">
         <Providers>
           <Navbar />
           {children}
         </Providers>
       </body>
     </html>
-  );
+  )
 }
