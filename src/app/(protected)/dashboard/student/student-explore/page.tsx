@@ -44,7 +44,7 @@ export default function StudentExplorePage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(12);
   const [hasMore, setHasMore] = useState(true);
-  const { favorites, toggleFavorite } = useFavorites();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -54,6 +54,8 @@ export default function StudentExplorePage() {
   const detailAbortRef = useRef<AbortController | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [favoritesFirst, setFavoritesFirst] = useState(false);
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
 
   // Get current date
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -170,6 +172,14 @@ export default function StudentExplorePage() {
     setSelected(null);
   };
 
+  // compute displayed items (only-favorites overrides favorites-first)
+  let displayedItems = items;
+  if (onlyFavorites) {
+    displayedItems = items.filter((it) => isFavorite(it.id));
+  } else if (favoritesFirst) {
+    displayedItems = [...items].sort((a, b) => (isFavorite(b.id) ? 1 : 0) - (isFavorite(a.id) ? 1 : 0));
+  }
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeModal();
@@ -245,9 +255,34 @@ export default function StudentExplorePage() {
           {/* Right Half: Visuals/Cards */}
           <main className="p-8 bg-berryBlue">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2 text-center">Visuals</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-bold text-white">Visuals</h2>
+                <div className="flex items-center gap-4">
+                  <div className="inline-flex items-center px-3 py-1.5 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-semibold">
+                    ⭐ {favorites.size}
+                  </div>
+                  <label className="inline-flex items-center text-sm text-white cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={favoritesFirst}
+                      onChange={(e) => setFavoritesFirst(e.target.checked)}
+                      className="mr-2"
+                    />
+                    Favorites first
+                  </label>
+                  <label className="inline-flex items-center text-sm text-white cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={onlyFavorites}
+                      onChange={(e) => setOnlyFavorites(e.target.checked)}
+                      className="mr-2"
+                    />
+                    Only favorites
+                  </label>
+                </div>
+              </div>
               <p className="text-sm text-white/80 text-center">
-                {loading ? "Loading..." : `${items.length} opportunities found`}
+                {loading ? "Loading..." : `${displayedItems.length} opportunities shown`}
               </p>
             </div>
 
@@ -255,6 +290,10 @@ export default function StudentExplorePage() {
 
             {loading && !items.length ? (
               <div className="py-12 text-center text-white/70 text-lg">Loading opportunities…</div>
+            ) : onlyFavorites && displayedItems.length === 0 ? (
+              <div className="py-12 text-center text-white bg-berryTeal/50 p-8 rounded-2xl border-2 border-white/20">
+                No favorites yet — star an opportunity to save it.
+              </div>
             ) : items.length === 0 ? (
               <div className="py-12 text-center text-white bg-berryTeal/50 p-8 rounded-2xl border-2 border-white/20">
                 No opportunities found. Try adjusting your search or category filter.
@@ -263,7 +302,7 @@ export default function StudentExplorePage() {
               <>
                 {/* Grid of Opportunity Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {items.map((o) => (
+                  {displayedItems.map((o) => (
                     <article
                       key={o.id}
                       className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-all cursor-pointer"
@@ -297,7 +336,7 @@ export default function StudentExplorePage() {
                           >
                             <FaStar
                               className={`text-xl ${
-                                favorites.has(o.id) ? "fill-current text-yellow-400" : "text-gray-300"
+                                isFavorite(o.id) ? "fill-current text-yellow-400" : "text-gray-300"
                               }`}
                             />
                           </button>
