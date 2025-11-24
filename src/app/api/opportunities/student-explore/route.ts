@@ -35,6 +35,20 @@ export async function GET(req: Request) {
     const search = searchRaw.trim();
     const category = url.searchParams.get("category") ?? "";
 
+    // If searching, first find matching organization IDs
+    let matchingOrgIds: string[] = [];
+    if (search) {
+      const pattern = `%${search.replace(/%/g, "\\%")}%`;
+      const { data: matchingOrgs } = await svc
+        .from("organizations")
+        .select("id")
+        .ilike("org_name", pattern);
+
+      if (matchingOrgs && matchingOrgs.length > 0) {
+        matchingOrgIds = matchingOrgs.map((org: any) => org.id);
+      }
+    }
+
     // build query
     let q = svc
       .from("opportunities")
@@ -50,8 +64,12 @@ export async function GET(req: Request) {
     if (search) {
       // ilike pattern
       const pattern = `%${search.replace(/%/g, "\\%")}%`;
-      // search in name OR brief_description
-      q = q.or(`opportunity_name.ilike.${pattern},brief_description.ilike.${pattern}`);
+      // search in name OR brief_description OR organization name (via matching org IDs)
+      if (matchingOrgIds.length > 0) {
+        q = q.or(`opportunity_name.ilike.${pattern},brief_description.ilike.${pattern},organization_id.in.(${matchingOrgIds.join(",")})`);
+      } else {
+        q = q.or(`opportunity_name.ilike.${pattern},brief_description.ilike.${pattern}`);
+      }
     }
 
     const { data: opportunitiesRaw, error: oppError } = await q.range(from, to);

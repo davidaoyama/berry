@@ -33,8 +33,8 @@ export default function Navbar() {
 
   const getActiveClass = (path: string) =>
     isActive(path)
-      ? "bg-[#004aad] text-white"
-      : "text-gray-100 hover:bg-white/10"
+      ? "bg-berryBlue text-white shadow-md"
+      : "text-white hover:bg-berryPink hover:shadow-md transition-all"
 
   // Extract user information from Supabase user object
   const name = user
@@ -104,7 +104,7 @@ export default function Navbar() {
               <>
                 {/* Dashboard dropdown */}
                 <div className="relative group">
-                  <button className="px-3 py-2 rounded-full text-sm font-[Marble] text-gray-100 hover:bg-white/10 transition-colors flex items-center">
+                  <button className="px-4 py-2 rounded-full text-sm font-[Marble] bg-white text-berryBlue border border-berryBlue/60 hover:bg-blue-50 transition-all shadow-sm flex items-center">
                     Dashboards
                     <svg
                       className="ml-1 h-4 w-4 inline"
@@ -120,29 +120,29 @@ export default function Navbar() {
                       />
                     </svg>
                   </button>
-                  <div className="absolute right-0 mt-2 w-52 bg-[#2b2b2b] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-white/10">
+                  <div className="absolute right-0 mt-2 w-52 bg-blue-50 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-blue-200">
                     <div className="py-2">
                       <Link
                         href="/dashboard"
-                        className="block px-4 py-2 text-sm font-[Marble] hover:bg-white/10"
+                        className="block px-4 py-2 text-sm font-[Marble] text-gray-800 hover:bg-berryBlue hover:text-white transition-colors rounded-lg mx-2"
                       >
                         Main Dashboard
                       </Link>
                       <Link
                         href="/dashboard/student"
-                        className="block px-4 py-2 text-sm font-[Marble] hover:bg-white/10"
+                        className="block px-4 py-2 text-sm font-[Marble] text-gray-800 hover:bg-berryBlue hover:text-white transition-colors rounded-lg mx-2"
                       >
                         Student Dashboard
                       </Link>
                       <Link
                         href="/dashboard/org"
-                        className="block px-4 py-2 text-sm font-[Marble] hover:bg-white/10"
+                        className="block px-4 py-2 text-sm font-[Marble] text-gray-800 hover:bg-berryBlue hover:text-white transition-colors rounded-lg mx-2"
                       >
                         Organization Dashboard
                       </Link>
                       <Link
                         href="/dashboard/admin"
-                        className="block px-4 py-2 text-sm font-[Marble] hover:bg-white/10"
+                        className="block px-4 py-2 text-sm font-[Marble] text-gray-800 hover:bg-berryBlue hover:text-white transition-colors rounded-lg mx-2"
                       >
                         Admin Dashboard
                       </Link>
@@ -154,7 +154,7 @@ export default function Navbar() {
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-feed"
-                    className={`px-3 py-2 rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
+                    className={`px-3 py-2 bg-berryBlue rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
                       "/dashboard/student/student-feed"
                     )}`}
                   >
@@ -165,7 +165,7 @@ export default function Navbar() {
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-explore"
-                    className={`px-3 py-2 rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
+                    className={`px-3 bg-berryPink py-2 rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
                       "/dashboard/student/explore"
                     )}`}
                   >
@@ -176,7 +176,7 @@ export default function Navbar() {
                 {userRole === "student" && (
                   <Link
                     href="/dashboard/student/student-profile"
-                    className={`px-3 py-2 rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
+                    className={`px-3 py-2 bg-berryBlue rounded-full text-sm font-[Marble] transition-colors ${getActiveClass(
                       "/dashboard/student/profile"
                     )}`}
                   >
@@ -186,12 +186,12 @@ export default function Navbar() {
 
                 {/* User Menu */}
                 <div className="flex items-center space-x-3">
-                  <span className="text-gray-100 text-sm font-[Marble]">
+                  <span className="text-white text-sm font-[Marble] bg-berryPink/20 px-3 py-1.5 rounded-full">
                     {name || "User"}
                   </span>
                   <button
                     onClick={handleSignOut}
-                    className="px-4 py-2 rounded-full text-sm font-[Marble] border border-white/40 text-white hover:bg-white hover:text-[#004aad] transition-colors"
+                    className="px-4 py-2 rounded-full text-sm font-[Marble] bg-berryPink text-white hover:bg-pink-600 transition-all shadow-md shadow-pink-300/40"
                   >
                     Sign Out
                   </button>
@@ -317,7 +317,7 @@ export default function Navbar() {
                     Admin Dashboard
                   </Link>
                   <div className="border-t border-white/15 pt-3 mt-3">
-                    <div className="px-3 py-2 text-gray-100 text-sm font-[Marble]">
+                    <div className="px-3 py-2 text-white text-sm font-[Marble] bg-berryPink/20 rounded-full">
                       {name || "User"}
                     </div>
                     <button
@@ -325,7 +325,7 @@ export default function Navbar() {
                         handleSignOut()
                         setIsMenuOpen(false)
                       }}
-                      className="block w-full text-left px-3 py-2 rounded-full text-base font-[Marble] border border-white/40 text-white hover:bg-white hover:text-[#004aad] transition-colors mt-1"
+                      className="block w-full text-center px-3 py-2 rounded-full text-base font-[Marble] bg-berryPink text-white hover:bg-pink-600 transition-all shadow-md mt-2"
                     >
                       Sign Out
                     </button>
