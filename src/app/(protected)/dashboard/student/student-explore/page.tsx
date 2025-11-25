@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaBars, FaFilter, FaSearch } from "react-icons/fa";
 import useFavorites from "../../../../../lib/useFavorites";
+import Image from "next/image";
+
 
 type Opportunity = {
   id: string;
@@ -25,6 +27,16 @@ type Opportunity = {
   contact_info?: any | null;
 };
 
+const BERRY_CATEGORIES = [
+  "STEM & Innovation",
+  "Arts & Design",
+  "Civic Engagement & Leadership",
+  "Trades & Technical Careers",
+  "Business & Entrepreneurship",
+  "Health, Wellness & Environment",
+  "Humanities & Social Sciences",
+];
+
 export default function StudentExplorePage() {
   const [items, setItems] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(false);
@@ -35,14 +47,22 @@ export default function StudentExplorePage() {
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   const [search, setSearch] = useState("");
-  const [categories, setCategories] = useState<string[]>([]);
-  const [category, setCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const searchTimeout = useRef<number | null>(null);
   const [selected, setSelected] = useState<Opportunity | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const detailAbortRef = useRef<AbortController | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [favoritesFirst, setFavoritesFirst] = useState(false);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
+
+  // Get current date
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "2-digit",
+  });
 
   const formatCategory = (raw: string | null | undefined) => {
     if (!raw) return "";
@@ -60,16 +80,7 @@ export default function StudentExplorePage() {
     return null;
   };
 
-  const loadCategories = async () => {
-    try {
-      const res = await fetch("/api/opportunities/categories", { cache: "no-store" });
-      if (!res.ok) return;
-      const json = await res.json();
-      setCategories(json.categories ?? []);
-    } catch (e) {}
-  };
-
-  const load = async (p = 1, currentSearch = search, currentCategory = category) => {
+  const load = async (p = 1, currentSearch = search, currentCategory = selectedCategory) => {
     setLoading(true);
     setError(null);
     try {
@@ -98,19 +109,18 @@ export default function StudentExplorePage() {
   };
 
   useEffect(() => {
-    loadCategories();
     load(1);
   }, []);
 
   useEffect(() => {
     if (searchTimeout.current) window.clearTimeout(searchTimeout.current);
     searchTimeout.current = window.setTimeout(() => {
-      load(1, search, category);
+      load(1, search, selectedCategory);
     }, 350);
     return () => {
       if (searchTimeout.current) window.clearTimeout(searchTimeout.current);
     };
-  }, [search, category]);
+  }, [search, selectedCategory]);
 
   const goto = (p: number) => {
     if (p < 1) return;
@@ -165,9 +175,9 @@ export default function StudentExplorePage() {
   // compute displayed items (only-favorites overrides favorites-first)
   let displayedItems = items;
   if (onlyFavorites) {
-    displayedItems = items.filter((it) => favorites.has(it.id));
+    displayedItems = items.filter((it) => isFavorite(it.id));
   } else if (favoritesFirst) {
-    displayedItems = [...items].sort((a, b) => (favorites.has(b.id) ? 1 : 0) - (favorites.has(a.id) ? 1 : 0));
+    displayedItems = [...items].sort((a, b) => (isFavorite(b.id) ? 1 : 0) - (isFavorite(a.id) ? 1 : 0));
   }
 
   useEffect(() => {
@@ -187,198 +197,264 @@ export default function StudentExplorePage() {
   }, [selected]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Explore Opportunities</h2>
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-gray-500">{loading ? "Loading..." : `${displayedItems.length} shown`}</div>
-            <div className="inline-flex items-center px-2 py-1 bg-yellow-50 text-yellow-700 rounded text-sm">
-              ⭐ {favorites.size}
+    <div className="min-h-screen bg-berryBlue">
+      {/* Custom Navigation Bar */}
+      <nav className="bg-berryBlue shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center h-24 py-6">
+            {/* Center: Search Bar */}
+            <div className="w-full max-w-4xl">
+              <div className="relative">
+                <FaSearch className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
+                <input
+                  type="search"
+                  placeholder="Search by categories, interests, or company name"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-14 pr-6 py-4 text-lg rounded-full bg-white/90 backdrop-blur-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-berryPink shadow-lg"
+                />
+              </div>
             </div>
           </div>
         </div>
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-          <input
-            type="search"
-            placeholder="Search by title or description..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:flex-1 px-3 py-2 border rounded-md bg-white"
-          />
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="mt-3 sm:mt-0 w-full sm:w-64 px-3 py-2 border rounded-md bg-white"
-          >
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {formatCategory(c)}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => {
-              setSearch("");
-              setCategory("");
-              load(1, "", "");
-            }}
-            className="mt-3 sm:mt-0 ml-auto inline-flex items-center px-3 py-2 bg-gray-100 rounded-md"
-          >
-            Reset
-          </button>
-          <label className="mt-3 sm:mt-0 sm:ml-4 inline-flex items-center text-sm text-gray-600">
-            <input
-              type="checkbox"
-              checked={favoritesFirst}
-              onChange={(e) => setFavoritesFirst(e.target.checked)}
-              className="mr-2"
-            />
-            Favorites first
-          </label>
-          <label className="mt-3 sm:mt-0 sm:ml-4 inline-flex items-center text-sm text-gray-600">
-            <input
-              type="checkbox"
-              checked={onlyFavorites}
-              onChange={(e) => setOnlyFavorites(e.target.checked)}
-              className="mr-2"
-            />
-            Only favorites
-          </label>
-        </div>
-        {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded">{error}</div>}
-        {loading && !items.length ? (
-          <div className="py-8 text-center">Loading opportunities…</div>
-        ) : onlyFavorites && displayedItems.length === 0 ? (
-          <div className="py-8 text-center text-gray-600 bg-white/50 p-6 rounded">No favorites yet — star an opportunity to save it.</div>
-        ) : items.length === 0 ? (
-          <div className="py-8 text-center text-gray-600 bg-white/50 p-6 rounded">No opportunities found.</div>
-        ) : (
-          <div className="space-y-4">
-            {displayedItems.map((o) => (
-              <article key={o.id} className="w-full bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-xl text-gray-900">{o.opportunity_name}</h3>
-                    {o.org_name && <div className="text-sm text-gray-600 mt-1">{o.org_name}</div>}
-                    {o.brief_description && <p className="mt-3 text-sm text-gray-700">{o.brief_description}</p>}
-                    <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-500">
-                      <span className="px-2 py-1 bg-gray-50 rounded">{o.category ? formatCategory(o.category) : "—"}</span>
-                      <span className="px-2 py-1 bg-gray-50 rounded">{o.opportunity_type ?? "—"}</span>
-                    </div>
+      </nav>
+
+      {/* Main Content: Two-Column Layout */}
+      <div className="py-8 px-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+          {/* Left Half: Categories */}
+          <aside className="bg-berryBlue/30 p-12">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-10 text-center">Search by Category</h2>
+              <div className="grid grid-cols-2 gap-6 max-w-2xl mx-auto">
+                {BERRY_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(selectedCategory === cat ? "" : cat)}
+                    className={`text-center px-8 py-6 rounded-2xl font-bold text-base transition-all text-xl ${
+                      selectedCategory === cat
+                        ? "bg-berryTeal text-white shadow-lg scale-105"
+                        : "bg-berryTeal text-white hover:bg-berryBlue/80 hover:shadow-lg hover:scale-105"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+                {selectedCategory && (
+                  <button
+                    onClick={() => setSelectedCategory("")}
+                    className="col-span-2 text-center px-8 py-6 rounded-2xl font-bold text-base bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all hover:scale-105"
+                  >
+                    Clear Filter
+                  </button>
+                )}
+              </div>
+            </div>
+          </aside>
+
+          {/* Right Half: Visuals/Cards */}
+          <main className="p-8 bg-berryBlue">
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-bold text-white">Visuals</h2>
+                <div className="flex items-center gap-4">
+                  <div className="inline-flex items-center px-3 py-1.5 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-semibold">
+                    ⭐ {favorites.size}
                   </div>
-                  <div className="w-full lg:w-48 flex-shrink-0 flex flex-col items-start lg:items-end">
-                    {o.application_deadline && <div className="text-xs text-gray-400">Deadline</div>}
-                    {o.application_deadline && (
-                      <div className="mt-1 text-sm font-medium text-gray-700">
-                        {new Date(o.application_deadline).toLocaleDateString()}
-                      </div>
-                    )}
-                    <button
-                      onClick={() => openModal(o)}
-                      className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => toggleFavorite(o.id)}
-                      className="mt-4 inline-flex items-center text-yellow-500"
-                      aria-label="Toggle Favorite"
-                    >
-                      <FaStar
-                        className={`text-xl ${
-                          favorites.has(o.id) ? "fill-current text-yellow-500" : "stroke-current text-gray-400"
-                        }`}
-                      />
-                    </button>
-                  </div>
+                  <label className="inline-flex items-center text-sm text-white cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={favoritesFirst}
+                      onChange={(e) => setFavoritesFirst(e.target.checked)}
+                      className="mr-2"
+                    />
+                    Favorites first
+                  </label>
+                  <label className="inline-flex items-center text-sm text-white cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={onlyFavorites}
+                      onChange={(e) => setOnlyFavorites(e.target.checked)}
+                      className="mr-2"
+                    />
+                    Only favorites
+                  </label>
                 </div>
-              </article>
-            ))}
-          </div>
-        )}
-        <div className="flex items-center justify-center space-x-3 mt-6">
-          <button
-            onClick={() => goto(page - 1)}
-            disabled={loading || page === 1}
-            className="px-3 py-1 bg-white border border-gray-200 rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span className="text-sm text-gray-600">Page {page}</span>
-          <button
-            onClick={() => goto(page + 1)}
-            disabled={loading || !hasMore}
-            className="px-3 py-1 bg-white border border-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
+              </div>
+              <p className="text-sm text-white/80 text-center">
+                {loading ? "Loading..." : `${displayedItems.length} opportunities shown`}
+              </p>
+            </div>
+
+            {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
+
+            {loading && !items.length ? (
+              <div className="py-12 text-center text-white/70 text-lg">Loading opportunities…</div>
+            ) : onlyFavorites && displayedItems.length === 0 ? (
+              <div className="py-12 text-center text-white bg-berryTeal/50 p-8 rounded-2xl border-2 border-white/20">
+                No favorites yet — star an opportunity to save it.
+              </div>
+            ) : items.length === 0 ? (
+              <div className="py-12 text-center text-white bg-berryTeal/50 p-8 rounded-2xl border-2 border-white/20">
+                No opportunities found. Try adjusting your search or category filter.
+              </div>
+            ) : (
+              <>
+                {/* Grid of Opportunity Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {displayedItems.map((o) => (
+                    <article
+                      key={o.id}
+                      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-all cursor-pointer"
+                      onClick={() => openModal(o)}
+                    >
+                      {/* Image Placeholder */}
+                      <div className="h-56 bg-gradient-to-br from-berryBlue/30 via-berryTeal/20 to-berryPink/30 flex items-center justify-center p-6">
+                        <div className="text-center">
+                          <h3 className="font-bold text-xl text-gray-800 line-clamp-3">
+                            {o.opportunity_name}
+                          </h3>
+                        </div>
+                      </div>
+
+                      {/* Card Content */}
+                      <div className="p-5">
+                        <p className="text-sm font-semibold text-gray-700 mb-2">{o.org_name}</p>
+                        <p className="text-xs text-gray-500 line-clamp-2 mb-4">{o.brief_description}</p>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs px-3 py-1.5 bg-berryBlue text-white rounded-full font-semibold">
+                            {o.category ? formatCategory(o.category) : "General"}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(o.id);
+                            }}
+                            aria-label="Toggle Favorite"
+                            className="hover:scale-125 transition-transform"
+                          >
+                            <FaStar
+                              className={`text-xl ${
+                                isFavorite(o.id) ? "fill-current text-yellow-400" : "text-gray-300"
+                              }`}
+                            />
+                          </button>
+                        </div>
+
+                        {o.application_deadline && (
+                          <div className="mt-4 text-xs text-gray-600 font-medium">
+                            Deadline: {new Date(o.application_deadline).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-center space-x-4 mt-8">
+                  <button
+                    onClick={() => goto(page - 1)}
+                    disabled={loading || page === 1}
+                    className="px-4 py-2 bg-berryBlue text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-sm text-gray-700 font-medium">Page {page}</span>
+                  <button
+                    onClick={() => goto(page + 1)}
+                    disabled={loading || !hasMore}
+                    className="px-4 py-2 bg-berryBlue text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
+            )}
+          </main>
         </div>
       </div>
+
+      {/* Modal for Opportunity Details */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={closeModal}
         >
           <div
-            className="max-w-2xl w-full bg-white rounded-lg shadow-xl p-6"
+            className="max-w-2xl w-full bg-white rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <h3 className="text-xl font-semibold">{selected.opportunity_name}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{selected.opportunity_name}</h3>
                 {selected.org_name && <div className="text-sm text-gray-600 mt-1">{selected.org_name}</div>}
               </div>
               <button
                 onClick={closeModal}
                 aria-label="Close"
-                className="text-gray-500 hover:text-gray-800"
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
               >
                 ✕
               </button>
             </div>
-            <div className="mt-4 text-sm text-gray-700">{selected.brief_description ?? "No description provided."}</div>
+
+            <div className="mt-4 text-sm text-gray-700 leading-relaxed">
+              {selected.brief_description ?? "No description provided."}
+            </div>
+
             {detailLoading && <div className="mt-3 text-sm text-gray-500">Loading additional details…</div>}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600">
+
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
               {(selected.min_age || selected.max_age) && (
-                <div>Age: {selected.min_age ?? "—"} — {selected.max_age ?? "—"}</div>
+                <div className="bg-white-50 p-3 rounded-lg">
+                  <strong className="text-gray-800">Age Range:</strong> {selected.min_age ?? "—"} — {selected.max_age ?? "—"}
+                </div>
               )}
               {selected.grade_levels && Array.isArray(selected.grade_levels) && (
-                <div>Grades: {selected.grade_levels.join(", ")}</div>
+                <div className="bg-white-50 p-3 rounded-lg">
+                  <strong className="text-gray-800">Grades:</strong> {selected.grade_levels.join(", ")}
+                </div>
               )}
-              {selected.location_type && <div>Location: {selected.location_type}</div>}
-              {selected.contact_info && (
-                <div>
-                  Contact: {typeof selected.contact_info === "string" ? selected.contact_info : JSON.stringify(selected.contact_info)}
+              {selected.location_type && (
+                <div className="bg-white-50 p-3 rounded-lg">
+                  <strong className="text-gray-800">Location:</strong> {selected.location_type}
                 </div>
               )}
               {selected.min_gpa != null && (
-                <div>Min GPA: {Number(selected.min_gpa).toFixed(2).replace(/\.00$/, "")}</div>
-              )}
-              {(selected.start_date || selected.end_date) && (
-                <div>
-                  {selected.start_date && <div>Starts: {new Date(selected.start_date).toLocaleDateString()}</div>}
-                  {selected.end_date && <div>Ends: {new Date(selected.end_date).toLocaleDateString()}</div>}
+                <div className="bg-white-50 p-3 rounded-lg">
+                  <strong className="text-gray-800">Min GPA:</strong> {Number(selected.min_gpa).toFixed(2).replace(/\.00$/, "")}
                 </div>
               )}
-              {selected.has_stipend != null && <div>Stipend: {selected.has_stipend ? "Yes" : "No"}</div>}
+              {(selected.start_date || selected.end_date) && (
+                <div className="bg-white-50 p-3 rounded-lg">
+                  {selected.start_date && <div><strong>Starts:</strong> {new Date(selected.start_date).toLocaleDateString()}</div>}
+                  {selected.end_date && <div><strong>Ends:</strong> {new Date(selected.end_date).toLocaleDateString()}</div>}
+                </div>
+              )}
+              {selected.has_stipend != null && (
+                <div className="bg-white-50 p-3 rounded-lg">
+                  <strong className="text-gray-800">Stipend:</strong> {selected.has_stipend ? "Yes" : "No"}
+                </div>
+              )}
             </div>
+
             <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 bg-white-200 text-gray-700 rounded-lg hover:bg-white-300 transition-colors"
+              >
+                Close
+              </button>
               <a
                 href={selected.application_url ?? "#"}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700"
+                className="px-6 py-2 bg-berryPink text-white rounded-lg hover:bg-pink-600 transition-colors font-medium"
               >
-                Apply
+                Apply Now
               </a>
-              <button
-                onClick={closeModal}
-                className="inline-block bg-white border border-gray-200 px-4 py-2 rounded text-sm"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>
