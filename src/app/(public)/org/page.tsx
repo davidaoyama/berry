@@ -233,19 +233,19 @@ export default function OrganizationRegistration() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#004aad] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white shadow-lg rounded-lg p-8">
+        <div className="bg-[#004aad] shadow-lg rounded-lg p-8">
           {/* Header */}
           <div className="mb-8">
-            <Link href="/" className="text-indigo-600 hover:text-indigo-500 flex items-center mb-4">
+            <Link href="/" className="text-white hover:text-indigo-500 flex items-center mb-4">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Home
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Organization Registration</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-white mb-2">Organization Registration</h1>
+            <p className="text-white">
               Complete this application to connect with LAUSD students through BERRY
             </p>
           </div>
@@ -258,14 +258,14 @@ export default function OrganizationRegistration() {
                   <div className="flex flex-col items-center flex-1">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold
                       ${currentStep >= step.number
-                        ? 'bg-indigo-600 text-white'
+                        ? 'bg-[#52b2bf] text-white'
                         : 'bg-gray-200 text-gray-600'}`}
                     >
                       {step.number}
                     </div>
                     <div className="text-center mt-2">
-                      <div className="text-xs font-medium text-gray-900">{step.title}</div>
-                      <div className="text-xs text-gray-500">{step.desc}</div>
+                      <div className="text-xs font-medium text-white">{step.title}</div>
+                      <div className="text-xs text-gray-350">{step.desc}</div>
                     </div>
                   </div>
                   {idx < steps.length - 1 && (
@@ -288,12 +288,12 @@ export default function OrganizationRegistration() {
             {/* STEP 1: Basic Company Information */}
             {currentStep === 1 && (
               <div className="space-y-6">
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Company Information</h2>
+                <div className="bg-[#004aad] p-6 rounded-lg">
+                  <h2 className="text-xl font-semibold text-white mb-4">Basic Company Information</h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
-                      <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="organizationName" className="block text-sm font-medium text-white mb-2">
                         Organization Name (Official Legal Name) *
                       </label>
                       <input
@@ -309,7 +309,7 @@ export default function OrganizationRegistration() {
                     </div>
 
                     <div>
-                      <label htmlFor="organizationType" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="organizationType" className="block text-sm font-medium text-white mb-2">
                         Type of Organization *
                       </label>
                       <select
@@ -329,7 +329,7 @@ export default function OrganizationRegistration() {
                     </div>
 
                     <div>
-                      <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="website" className="block text-sm font-medium text-white mb-2">
                         Website URL (need https://) *
                       </label>
                       <input
@@ -345,7 +345,7 @@ export default function OrganizationRegistration() {
                     </div>
 
                     <div>
-                      <label htmlFor="officialEmailDomain" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="officialEmailDomain" className="block text-sm font-medium text-white mb-2">
                         Official Email Domain *
                       </label>
                       <input
@@ -358,11 +358,11 @@ export default function OrganizationRegistration() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="e.g., company.com"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter domain only (e.g., usc.edu, not @usc.edu)</p>
+                      <p className="text-xs text-white mt-1">Enter domain only (e.g., usc.edu, not @usc.edu)</p>
                     </div>
 
                     <div>
-                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-white mb-2">
                         Phone Number *
                       </label>
                       <input
@@ -378,7 +378,7 @@ export default function OrganizationRegistration() {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="businessAddress" className="block text-sm font-medium text-white mb-2">
                         Business Address *
                       </label>
                       <input
@@ -394,7 +394,7 @@ export default function OrganizationRegistration() {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label htmlFor="linkedinUrl" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="linkedinUrl" className="block text-sm font-medium text-white mb-2">
                         LinkedIn Page or Social Media (Optional)
                       </label>
                       <input
@@ -414,7 +414,7 @@ export default function OrganizationRegistration() {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
+                    className="px-6 py-3 bg-[#52b2bf] text-white rounded-md hover:bg-[#f77fbe] font-medium"
                   >
                     Next: Verification & Contact →
                   </button>
@@ -425,12 +425,12 @@ export default function OrganizationRegistration() {
             {/* STEP 2: Verification & Contact */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Verification & Contact Authenticity</h2>
+                <div className="bg-[#004aad] p-6 rounded-lg">
+                  <h2 className="text-xl font-semibold text-white mb-4">Verification & Contact Authenticity</h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="contactName" className="block text-sm font-medium text-white mb-2">
                         Full Name *
                       </label>
                       <input
@@ -446,7 +446,7 @@ export default function OrganizationRegistration() {
                     </div>
 
                     <div>
-                      <label htmlFor="contactRole" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="contactRole" className="block text-sm font-medium text-white mb-2">
                         Role / Title *
                       </label>
                       <input
@@ -462,7 +462,7 @@ export default function OrganizationRegistration() {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="contactEmail" className="block text-sm font-medium text-white mb-2">
                         Official Organizational Email *
                       </label>
                       <input
@@ -475,13 +475,13 @@ export default function OrganizationRegistration() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder={`you@${formData.officialEmailDomain || 'yourcompany.com'}`}
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-white mt-1">
                         Must match your official domain. No Gmail, Outlook, etc.
                       </p>
                     </div>
 
                     <div className="md:col-span-2">
-                      <label htmlFor="businessId" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="businessId" className="block text-sm font-medium text-white mb-2">
                         Business ID / Org ID *
                       </label>
                       <input
@@ -500,8 +500,8 @@ export default function OrganizationRegistration() {
 
                 {/* Type-Specific Verification Documents */}
                 {formData.organizationType && (
-                  <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold text-yellow-900 mb-4">
+                  <div className="bg-[#52b2bf] border border-white p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-white mb-4">
                       Supporting Documents - {formData.organizationType === "university" ? "University" :
                                                formData.organizationType === "business" ? "Business" :
                                                formData.organizationType === "nonprofit" ? "Non-Profit" : "Other"}
@@ -509,11 +509,11 @@ export default function OrganizationRegistration() {
 
                     {formData.organizationType === "university" && (
                       <div className="space-y-4">
-                        <p className="text-sm text-yellow-800">
+                        <p className="text-sm text-white">
                           Universities must provide IPEDS/NCES Institution ID OR use a .edu email domain
                         </p>
                         <div>
-                          <label htmlFor="ipeds" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="ipeds" className="block text-sm font-medium text-white mb-2">
                             IPEDS or NCES Institution ID
                           </label>
                           <input
@@ -531,11 +531,11 @@ export default function OrganizationRegistration() {
 
                     {formData.organizationType === "business" && (
                       <div className="space-y-4">
-                        <p className="text-sm text-yellow-800 mb-4">
+                        <p className="text-sm text-white mb-4">
                           Businesses must provide EIN and Business License Number
                         </p>
                         <div>
-                          <label htmlFor="ein" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="ein" className="block text-sm font-medium text-white mb-2">
                             Employer Identification Number (EIN) *
                           </label>
                           <input
@@ -550,7 +550,7 @@ export default function OrganizationRegistration() {
                           />
                         </div>
                         <div>
-                          <label htmlFor="businessLicense" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="businessLicense" className="block text-sm font-medium text-white mb-2">
                             Business License Number *
                           </label>
                           <input
@@ -569,11 +569,11 @@ export default function OrganizationRegistration() {
 
                     {formData.organizationType === "nonprofit" && (
                       <div className="space-y-4">
-                        <p className="text-sm text-yellow-800 mb-4">
+                        <p className="text-sm text-white mb-4">
                           Non-profits must provide EIN and 501(c)(3) documentation
                         </p>
                         <div>
-                          <label htmlFor="ein" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="ein" className="block text-sm font-medium text-white mb-2">
                             Employer Identification Number (EIN) *
                           </label>
                           <input
@@ -588,7 +588,7 @@ export default function OrganizationRegistration() {
                           />
                         </div>
                         <div>
-                          <label htmlFor="nonprofit501c3" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="nonprofit501c3" className="block text-sm font-medium text-white mb-2">
                             501(c)(3) Letter Reference / Confirmation Number *
                           </label>
                           <input
@@ -601,7 +601,7 @@ export default function OrganizationRegistration() {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             placeholder="IRS determination letter reference"
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-white mt-1">
                             Please provide reference number or confirmation that you have 501(c)(3) status
                           </p>
                         </div>
@@ -610,7 +610,7 @@ export default function OrganizationRegistration() {
 
                     {formData.organizationType === "other" && (
                       <div>
-                        <p className="text-sm text-yellow-800">
+                        <p className="text-sm text-white">
                           Please ensure your Business ID is valid and verifiable
                         </p>
                       </div>
@@ -622,14 +622,14 @@ export default function OrganizationRegistration() {
                   <button
                     type="button"
                     onClick={handlePrevious}
-                    className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
+                    className="px-6 py-3 border border-gray-300 bg-[#52b2bf] rounded-md text-white hover:bg-[#f77fbe] font-medium"
                   >
                     ← Previous
                   </button>
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
+                    className="px-6 py-3 bg-[#52b2bf] text-white rounded-md hover:bg-[#f77fbe] font-medium"
                   >
                     Next: Goals & Mission →
                   </button>
@@ -640,11 +640,11 @@ export default function OrganizationRegistration() {
             {/* STEP 3: Goals */}
             {currentStep === 3 && (
               <div className="space-y-6">
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Organization Goals</h2>
+                <div className="bg-[#004aad] p-6 rounded-lg">
+                  <h2 className="text-xl font-semibold text-white mb-4">Organization Goals</h2>
 
                   <div>
-                    <label htmlFor="goalsDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="goalsDescription" className="block text-white font-medium text-gray-700 mb-2">
                       What are your organization's goals with LAUSD students? *
                     </label>
                     <textarea
@@ -657,7 +657,7 @@ export default function OrganizationRegistration() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="Describe what opportunities you plan to offer, how you'll support students, and your mission for engaging with the LAUSD community..."
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-white mt-1">
                       Minimum 50 characters. Be specific about programs, internships, or opportunities you'll provide.
                     </p>
                   </div>
@@ -691,14 +691,14 @@ export default function OrganizationRegistration() {
                   <button
                     type="button"
                     onClick={handlePrevious}
-                    className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
+                    className="px-6 py-3 border bg-[#52b2bf] border-gray-300 rounded-md text-white hover:bg-[#f77fbe] font-medium"
                   >
                     ← Previous
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    className="px-6 py-3 bg-[#52b2bf] text-white rounded-md hover:bg-[#f77fbe] font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                   >
                     {isSubmitting ? (
                       <>

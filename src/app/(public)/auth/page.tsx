@@ -222,7 +222,7 @@ export default function AuthPage() {
   
   // Render based on mode (signup or signin)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#004aad] from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       {/* Email sent confirmation screen */}
       {emailSent ? (
         <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
@@ -254,17 +254,17 @@ export default function AuthPage() {
           </div>
         </div>
       ) : (
-        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+        <div className="max-w-md w-full bg-[#004aad] p-8 rounded-lg shadow-md">
           <div className="text-center mb-6">
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-blue-100">
               <svg className="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mt-2">
+            <h2 className="text-2xl font-bold text-white mt-2">
               {mode === "signup" ? "Create an Account" : "Welcome Back"}
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-white">
               {mode === "signup" ? "Sign up to access Berry" : "Sign in to your account"}
             </p>
           </div>
@@ -279,7 +279,7 @@ export default function AuthPage() {
             {/* Role selector (before email for signup) */}
             {mode === "signup" && (
               <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="role" className="block text-sm font-medium text-white">
                   I am a
                 </label>
                 <select
@@ -303,7 +303,7 @@ export default function AuthPage() {
             {/* Sign-in mode also needs a role selector, but more subtle */}
             {mode === "signin" && (
               <div>
-                <label htmlFor="signin-role" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="signin-role" className="block text-sm font-medium text-white">
                   I am signing in as a
                 </label>
                 <select
@@ -324,9 +324,9 @@ export default function AuthPage() {
             
             {/* Email field */}
             <div>
-              <label htmlFor="email" className="flex justify-between items-center text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="flex justify-between items-center text-sm font-medium text-white">
                 <span>Email {role === "student" && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-white">
                     (Must be {ALLOWED_DOMAINS.join(" or ")})
                   </span>
                 )}</span>
@@ -357,7 +357,7 @@ export default function AuthPage() {
             {mode === "signup" && role === "org" && (
               <>
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="firstName" className="block text-sm font-medium text-white">
                     First Name
                   </label>
                   <input
@@ -373,7 +373,7 @@ export default function AuthPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="lastName" className="block text-sm font-medium text-white">
                     Last Name
                   </label>
                   <input
@@ -414,7 +414,7 @@ export default function AuthPage() {
               <div className="text-center">
                 <button
                   onClick={handleResendVerification}
-                  className="text-sm text-blue-600 hover:text-blue-500"
+                  className="text-sm text-white hover:text-blue-500"
                 >
                   Resend verification email
                 </button>
@@ -430,14 +430,14 @@ export default function AuthPage() {
             <div className="text-center">
               <Link
                 href={`/auth?mode=${mode === "signup" ? "signin" : "signup"}`}
-                className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                className="text-sm text-white hover:text-blue-500 font-medium"
               >
                 {mode === "signup" ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
               </Link>
             </div>
 
             <div className="text-center">
-              <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link href="/" className="text-sm text-white hover:text-blue-500">
                 ← Back to home
               </Link>
             </div>

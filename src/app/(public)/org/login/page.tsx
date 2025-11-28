@@ -67,40 +67,36 @@ export default function OrgLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#004aad] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 text-white">
+        {/* HEADER: Welcome Back + Berry logo */}
+        <div className="relative mb-6">
+          <p className="absolute -top-6 left-0 text-xl sm:text-2xl text-[#f77fbe] font-[Atelia] -rotate-12">
+            Welcome Back!
+          </p>
+          <h1 className="text-center text-4xl sm:text-5xl font-[Atelia] tracking-[0.25em] text-[#f77fbe]">
+            BERRY
+          </h1>
+        </div>
+
+        {/* Main heading / subheading */}
         <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100">
-            <svg
-              className="h-8 w-8 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Organization Sign In
+          <h2 className="mt-4 text-center text-3xl font-[Marble] text-white">
+            Organization Login
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-blue-100 font-[Marble]">
             Access your organization dashboard
           </p>
-          <p className="mt-1 text-center text-xs text-gray-500">
+          <p className="mt-1 text-center text-xs text-blue-100 font-[Marble]">
             Only registered organizations can access this portal
           </p>
         </div>
 
         {emailSent ? (
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white/10 border border-white/30 p-6 rounded-lg shadow-md">
             <div className="text-center">
               <svg
-                className="mx-auto h-12 w-12 text-green-600"
+                className="mx-auto h-12 w-12 text-green-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -112,17 +108,17 @@ export default function OrgLoginPage() {
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              <h3 className="mt-2 text-lg font-medium text-gray-900">
+              <h3 className="mt-2 text-lg font-medium text-white">
                 Check your email
               </h3>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-blue-100">
                 We've sent a login link to <strong>{email}</strong>
               </p>
               <div className="mt-6">
                 <button
                   type="button"
                   onClick={() => setEmailSent(false)}
-                  className="text-sm text-green-600 hover:text-green-500"
+                  className="text-sm text-[#f77fbe] hover:text-pink-300 font-[Marble]"
                 >
                   Use a different email
                 </button>
@@ -132,16 +128,17 @@ export default function OrgLoginPage() {
         ) : (
           <div className="mt-8 space-y-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-red-500/10 border border-red-400 text-red-200 px-4 py-3 rounded">
                 {error}
               </div>
             )}
 
+            {/* FORM */}
             <form onSubmit={handleOrgSignIn} className="space-y-4">
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-[Marble] text-[#f77fbe]"
                 >
                   Organization Email
                 </label>
@@ -153,7 +150,7 @@ export default function OrgLoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  className="mt-1 block w-full px-4 py-2 border border-[#f77fbe] bg-transparent rounded-md text-[#f77fbe] placeholder-pink-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-white focus:border-white"
                   placeholder="your@organization.com"
                   disabled={isLoading}
                 />
@@ -163,7 +160,7 @@ export default function OrgLoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="group relative w-full flex justify-center py-3 px-4 border border-white rounded-full text-sm font-[Marble] text-white bg-transparent hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <span className="flex items-center">
@@ -196,29 +193,30 @@ export default function OrgLoginPage() {
               </div>
             </form>
 
+            {/* Links under form */}
             <div className="text-center space-y-2">
-              <div className="text-sm text-gray-600">
-                Don't have an organization account?{" "}
+              <div className="text-sm text-blue-100 font-[Marble]">
+                New to <span className="text-[#f77fbe]">BERRY</span>?{" "}
                 <Link
                   href="/org"
-                  className="font-medium text-green-600 hover:text-green-500"
+                  className="font-[Marble] text-white underline underline-offset-4"
                 >
-                  Register your organization
+                  Join now
                 </Link>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-blue-100 font-[Marble]">
                 Are you a student?{" "}
                 <Link
                   href="/auth"
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                  className="font-[Marble] text-white underline underline-offset-4"
                 >
                   Student sign in
                 </Link>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-blue-100 font-[Marble]">
                 <Link
                   href="/"
-                  className="font-medium text-gray-600 hover:text-gray-500"
+                  className="font-[Marble] text-blue-100 hover:text-white"
                 >
                   ← Back to home
                 </Link>
@@ -227,11 +225,12 @@ export default function OrgLoginPage() {
           </div>
         )}
 
-        <div className="mt-8 bg-green-50 p-4 rounded-lg">
+        {/* Info box at bottom */}
+        <div className="mt-8 border border-white/30 bg-white/5 p-4 rounded-lg">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg
-                className="h-5 w-5 text-green-400"
+                className="h-5 w-5 text-blue-100"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -243,10 +242,10 @@ export default function OrgLoginPage() {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
+              <h3 className="text-sm font-[Marble] text-white">
                 Organization Access
               </h3>
-              <div className="mt-2 text-sm text-green-700">
+              <div className="mt-2 text-sm text-blue-100 font-[Marble]">
                 <p>
                   This portal is for registered organizations only. If your
                   organization isn't registered yet, please complete the

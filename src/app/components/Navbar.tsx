@@ -85,7 +85,7 @@ export default function Navbar() {
                 {/* Org Registration – blue button */}
                 <Link
                   href="/org"
-                  className="px-4 py-2 rounded-full text-sm font-[Marble] bg-[#004aad] text-white hover:bg-[#00337a] transition-all shadow-md shadow-blue-900/40"
+                  className="px-4 py-2 rounded-full text-sm font-[Marble] bg-[#52b2bf] text-white hover:bg-[#00337a] transition-all shadow-md shadow-blue-900/40"
                 >
                   Org Registration
                 </Link>
